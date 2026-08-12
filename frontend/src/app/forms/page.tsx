@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { api, type FormListItem } from "@/lib/api";
+import { Toast } from "@/components/toast";
 
 function formatDate(value: string | null) {
   if (!value) return "Not updated yet";
@@ -14,6 +15,8 @@ export default function FormsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [toast, setToast] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<FormListItem | null>(null);
 
   const loadForms = useCallback(async () => {
     setLoading(true);
@@ -28,11 +31,13 @@ export default function FormsPage() {
   }, []);
 
   useEffect(() => { void loadForms(); }, [loadForms]);
+  useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(""), 2200); return () => window.clearTimeout(timer); }, [toast]);
 
   async function createForm() {
     setBusyId(-1);
     try {
       const form = await api<{ id: number }>("/api/forms", { method: "POST", body: JSON.stringify({ title: "Untitled form" }) });
+      setToast("Form created");
       window.location.href = `/forms/${form.id}/edit`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create form");
@@ -41,14 +46,11 @@ export default function FormsPage() {
   }
 
   async function performAction(id: number, action: "duplicate" | "publish" | "unpublish" | "delete") {
-    if (action === "delete" && !window.confirm("Delete this form? This cannot be undone.")) return;
+    if (action === "delete") { setDeleteTarget(forms.find((form) => form.id === id) ?? null); return; }
     setBusyId(id);
     try {
-      if (action === "delete") {
-        await api(`/api/forms/${id}`, { method: "DELETE" });
-      } else {
-        await api(`/api/forms/${id}/${action}`, { method: "POST" });
-      }
+      await api(`/api/forms/${id}/${action}`, { method: "POST" });
+      setToast(action === "duplicate" ? "Form duplicated" : action === "publish" ? "Form published" : "Form unpublished");
       await loadForms();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Action failed");
@@ -57,8 +59,18 @@ export default function FormsPage() {
     }
   }
 
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    setDeleteTarget(null); setBusyId(target.id);
+    try { await api(`/api/forms/${target.id}`, { method: "DELETE" }); setToast("Form deleted"); await loadForms(); }
+    catch (err) { setError(err instanceof Error ? err.message : "Could not delete form"); }
+    finally { setBusyId(null); }
+  }
+
   return (
     <main className="min-h-screen bg-[#f7f7fb] text-slate-950">
+      {toast && <Toast message={toast} />}
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
           <Link href="/forms" className="flex items-center gap-3 text-lg font-bold tracking-tight">
@@ -115,6 +127,7 @@ export default function FormsPage() {
           </div>
         )}
       </section>
+      {deleteTarget && <div role="dialog" aria-modal="true" className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/40 px-5" onClick={() => setDeleteTarget(null)}><div className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl" onClick={(event) => event.stopPropagation()}><div className="grid h-12 w-12 place-items-center rounded-2xl bg-red-50 text-xl text-red-600">!</div><h2 className="mt-5 text-xl font-bold">Delete {deleteTarget.title}?</h2><p className="mt-2 text-sm leading-6 text-slate-500">This removes the form and all of its questions and responses. This action can&apos;t be undone.</p><div className="mt-7 flex justify-end gap-3"><button onClick={() => setDeleteTarget(null)} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold">Cancel</button><button onClick={() => void confirmDelete()} className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white">Delete form</button></div></div></div>}
     </main>
   );
 }
