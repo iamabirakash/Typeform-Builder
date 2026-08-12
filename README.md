@@ -11,3 +11,5 @@ Each implementation phase is completed and verified before requesting approval t
 Frontend: `cd frontend`, install dependencies with `npm install`, then run `npm run dev`.
 
 Backend: create a virtual environment in `backend`, install `requirements.txt`, then run `uvicorn app.main:app --reload --port 8000`.
+
+Seed demo data from `backend` with `python -m app.seed`. The command is idempotent and creates the default creator, two published forms, and realistic sample responses.
