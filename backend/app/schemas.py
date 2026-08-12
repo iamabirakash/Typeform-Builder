@@ -72,3 +72,64 @@ class FormOut(BaseModel):
 
 class ReorderRequest(BaseModel):
     question_ids: list[int] = Field(min_length=1)
+
+class PublicFormOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    title: str
+    description: str | None
+    theme: dict[str, Any] | None
+    thank_you_message: str
+    public_slug: str
+    questions: list[QuestionOut]
+
+class ResponseCreate(BaseModel):
+    respondent_meta: dict[str, Any] | None = None
+
+class ResponseCreated(BaseModel):
+    response_id: int
+
+class AnswerUpsert(BaseModel):
+    question_id: int
+    value: Any
+
+class ResponseListItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    submitted_at: datetime | None
+    is_complete: bool
+
+class ResponsePage(BaseModel):
+    page: int
+    page_size: int
+    total: int
+    items: list[ResponseListItem]
+
+class AnswerOut(BaseModel):
+    question_id: int
+    question_title: str
+    value: Any
+
+class ResponseDetail(BaseModel):
+    id: int
+    form_id: int
+    submitted_at: datetime | None
+    is_complete: bool
+    respondent_meta: dict[str, Any] | None
+    answers: list[AnswerOut]
+
+class SummaryItem(BaseModel):
+    question_id: int
+    question_title: str
+    type: str
+    total_answers: int
+    counts: dict[str, int] | None = None
+    average: float | None = None
+    distribution: dict[str, int] | None = None
+    samples: list[Any] | None = None
+
+class FormSummary(BaseModel):
+    form_id: int
+    total_responses: int
+    completed_responses: int
+    questions: list[SummaryItem]

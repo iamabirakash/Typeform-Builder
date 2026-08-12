@@ -1,4 +1,5 @@
 from datetime import datetime
+import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
@@ -62,6 +63,26 @@ def delete_form(form_id: int, db: Session = Depends(get_db)):
     form = get_form(db, form_id)
     db.delete(form)
     db.commit()
+
+@router.post("/forms/{form_id}/publish", response_model=FormOut)
+def publish_form(form_id: int, db: Session = Depends(get_db)):
+    form = get_form(db, form_id)
+    if not form.questions:
+        raise HTTPException(status_code=400, detail="A form must have at least one question before publishing")
+    if not form.public_slug:
+        form.public_slug = secrets.token_urlsafe(8).lower().replace("_", "-").replace("/", "-")
+    form.status = "published"
+    form.updated_at = datetime.utcnow()
+    db.commit()
+    return get_form(db, form_id)
+
+@router.post("/forms/{form_id}/unpublish", response_model=FormOut)
+def unpublish_form(form_id: int, db: Session = Depends(get_db)):
+    form = get_form(db, form_id)
+    form.status = "draft"
+    form.updated_at = datetime.utcnow()
+    db.commit()
+    return get_form(db, form_id)
 
 @router.post("/forms/{form_id}/duplicate", response_model=FormOut, status_code=status.HTTP_201_CREATED)
 def duplicate_form(form_id: int, db: Session = Depends(get_db)):
