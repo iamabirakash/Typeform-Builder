@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { api, type FormListItem } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { ApiError, api, clearToken, hasToken, type FormListItem } from "@/lib/api";
 import { Toast } from "@/components/toast";
 
 function formatDate(value: string | null) {
@@ -11,6 +12,7 @@ function formatDate(value: string | null) {
 }
 
 export default function FormsPage() {
+  const router = useRouter();
   const [forms, setForms] = useState<FormListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -19,11 +21,13 @@ export default function FormsPage() {
   const [deleteTarget, setDeleteTarget] = useState<FormListItem | null>(null);
 
   const loadForms = useCallback(async () => {
+    if (!hasToken()) { router.replace(`/auth?next=${encodeURIComponent("/forms")}`); return; }
     setLoading(true);
     try {
       setForms(await api<FormListItem[]>("/api/forms"));
       setError("");
     } catch (err) {
+      if (err instanceof ApiError && err.status === 401) { clearToken(); router.replace(`/auth?next=${encodeURIComponent("/forms")}`); return; }
       setError(err instanceof Error ? err.message : "Could not load your forms");
     } finally {
       setLoading(false);
@@ -77,7 +81,7 @@ export default function FormsPage() {
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#635bff] text-sm text-white">t.</span>
             typeform
           </Link>
-          <button onClick={createForm} disabled={busyId === -1} className="rounded-xl bg-[#635bff] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#5148e8] disabled:cursor-wait disabled:opacity-60">
+          <button onClick={() => { clearToken(); router.push("/auth"); }} className="mr-3 rounded-xl px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100">Log out</button><button onClick={createForm} disabled={busyId === -1} className="rounded-xl bg-[#635bff] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#5148e8] disabled:cursor-wait disabled:opacity-60">
             {busyId === -1 ? "Creating…" : "+ Create form"}
           </button>
         </div>
