@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Fraunces } from "next/font/google";
+import localFont from "next/font/local";
 
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  style: ["normal"],
+const typeformFont = localFont({
+  src: "../../public/font/typeform.woff2",
+  display: "swap",
+});
+
+const regularFont = localFont({
+  src: "../../public/font/reg.woff2",
   display: "swap",
 });
 
@@ -95,7 +98,7 @@ export default function Home() {
   const [openAccordion, setOpenAccordion] = useState(0);
 
   return (
-    <main className={`overflow-hidden bg-[#f7f6fa] text-[#171719] ${fraunces.className}`}>
+    <main className={`overflow-hidden bg-[#f7f6fa] text-[#171719] ${regularFont.className}`}>
       {/* Hero (dark) */}
       <section className="relative bg-[#1c1620]">
         <nav className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-7 lg:px-12">
@@ -119,7 +122,7 @@ export default function Home() {
         <div className="relative mx-auto max-w-4xl px-6 pb-20 pt-8 text-center lg:px-12">
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#a78bfa]">AI forms &amp; workflows</p>
           <h1
-            className={`${fraunces.className} mt-6 text-[clamp(2.75rem,7vw,5.25rem)] font-normal leading-[1.05] text-white`}
+            className={`${typeformFont.className} mt-6 text-[clamp(2.75rem,7vw,5.25rem)] font-normal leading-[1.05] text-white`}
           >
             The form is only
             <br />
@@ -161,7 +164,7 @@ export default function Home() {
                 )}
               </div>
               <div className="bg-[#171719] p-7">
-                <h3 className="text-2xl font-black leading-tight tracking-tight text-white">{card.title}</h3>
+                <h3 className={`${typeformFont.className} text-2xl font-black leading-tight tracking-tight text-white`}>{card.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-white/55">{card.copy}</p>
               </div>
             </div>
@@ -172,7 +175,7 @@ export default function Home() {
       {/* Customer journey (light) — interactive tabs */}
       <section className="mx-auto max-w-4xl px-6 py-24 text-center lg:px-12">
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#8b5cf6]">Customer journey</p>
-        <h2 className={`${fraunces.className} mt-6 text-[clamp(2.25rem,5vw,3.75rem)] font-normal leading-[1.1]`}>
+        <h2 className={`${typeformFont.className} mt-6 text-[clamp(2.25rem,5vw,3.75rem)] font-normal leading-[1.1]`}>
           Collect, analyze, and
           <br />
           act on customer data
@@ -196,7 +199,7 @@ export default function Home() {
       {/* Trusted logos + story cards */}
       <section className="border-t border-black/5 px-6 py-20 lg:px-12">
         <div className="mx-auto max-w-[1400px]">
-          <h3 className="text-center text-3xl font-bold tracking-tight lg:text-4xl">
+          <h3 className={`${typeformFont.className} text-center text-3xl font-bold tracking-tight lg:text-4xl`}>
             Trusted by 95% of Fortune 500 companies
           </h3>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-x-14 gap-y-6 text-xl font-bold text-black/70">
@@ -231,7 +234,7 @@ export default function Home() {
                     onClick={() => setOpenAccordion(isOpen ? -1 : i)}
                     className="flex w-full items-center justify-between text-left"
                   >
-                    <h3 className="text-2xl font-bold tracking-tight">{item.title}</h3>
+                    <h3 className={`${typeformFont.className} text-2xl font-bold tracking-tight`}>{item.title}</h3>
                     <span className="text-xl">{isOpen ? "︿" : "﹀"}</span>
                   </button>
                   {isOpen && (
@@ -278,7 +281,7 @@ export default function Home() {
       {/* Integrations */}
       <section className="px-6 py-24 lg:px-12">
         <div className="mx-auto max-w-[1200px] rounded-[2.5rem] bg-white p-10 text-center shadow-[0_20px_60px_rgba(30,20,50,0.08)] lg:p-16">
-          <h3 className="text-3xl font-bold tracking-tight lg:text-4xl">Integrates with every tech stack</h3>
+          <h3 className={`${typeformFont.className} text-3xl font-bold tracking-tight lg:text-4xl`}>Integrates with every tech stack</h3>
           <div className="mt-10 space-y-4">
             <div className="flex flex-wrap justify-center gap-3">
               {integrationsRow1.map((i) => (
@@ -310,7 +313,7 @@ export default function Home() {
           {stats.map((s) => (
             <div key={s.label} className="rounded-2xl border border-white/15 p-8 text-white">
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-white/60">{s.label}</p>
-              <p className={`${fraunces.className} mt-3 text-6xl`}>{s.value}</p>
+              <p className={`${typeformFont.className} mt-3 text-6xl`}>{s.value}</p>
               <p className="mt-3 text-sm text-white/60">{s.copy}</p>
             </div>
           ))}
@@ -320,7 +323,7 @@ export default function Home() {
       {/* Closing CTA (light) */}
       <section className="px-6 py-24 text-center lg:px-12">
         <h2
-          className={`${fraunces.className} mx-auto max-w-2xl text-[clamp(2.25rem,5vw,3.75rem)] font-normal leading-[1.1]`}
+          className={`${typeformFont.className} mx-auto max-w-2xl text-[clamp(2.25rem,5vw,3.75rem)] font-normal leading-[1.1]`}
         >
           Try the complete platform
           <br />
