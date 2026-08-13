@@ -15,7 +15,7 @@ from .schemas import AnswerUpsert, PublicFormOut, ResponseCreate, ResponseCreate
 router = APIRouter(prefix="/api")
 
 def public_form(db: Session, slug: str) -> Form:
-    form = db.scalar(select(Form).options(selectinload(Form.questions)).where(Form.public_slug == slug, Form.status == "published"))
+    form = db.scalar(select(Form).options(selectinload(Form.questions)).where(Form.public_slug == slug, Form.status == "published", Form.is_archived.is_(False)))
     if form is None:
         raise HTTPException(status_code=404, detail="This form isn't available")
     return form

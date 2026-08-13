@@ -14,6 +14,10 @@ class FormUpdate(BaseModel):
     theme: dict[str, Any] | None = None
     welcome_message: str | None = Field(default=None, max_length=1000)
     thank_you_message: str | None = Field(default=None, max_length=1000)
+    tags: list[str] | None = None
+    folder: str | None = Field(default=None, max_length=100)
+    is_favorite: bool | None = None
+    is_archived: bool | None = None
 
 class QuestionCreate(BaseModel):
     type: QuestionType
@@ -56,6 +60,10 @@ class FormListItem(BaseModel):
     status: str
     response_count: int
     updated_at: datetime | None
+    tags: list[str] | None = None
+    folder: str | None = None
+    is_favorite: bool = False
+    is_archived: bool = False
 
 class FormOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -70,10 +78,28 @@ class FormOut(BaseModel):
     thank_you_message: str
     created_at: datetime | None
     updated_at: datetime | None
+    tags: list[str] | None
+    folder: str | None
+    is_favorite: bool
+    is_archived: bool
     questions: list[QuestionOut]
 
 class ReorderRequest(BaseModel):
     question_ids: list[int] = Field(min_length=1)
+
+class ActivityOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    form_id: int
+    action: str
+    details: str | None
+    created_at: datetime | None
+
+class TemplateOut(BaseModel):
+    id: str
+    title: str
+    description: str
+    questions: list[dict[str, Any]]
 
 class PublicFormOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)

@@ -47,3 +47,8 @@ def init_db() -> None:
             form_columns = {column["name"] for column in inspect(connection).get_columns("forms")}
             if "welcome_message" not in form_columns:
                 connection.execute(text("ALTER TABLE forms ADD COLUMN welcome_message VARCHAR DEFAULT 'Welcome! Let''s get started.'"))
+            form_columns = {column["name"] for column in inspect(connection).get_columns("forms")}
+            additions = {"tags": "JSON", "folder": "VARCHAR", "is_favorite": "BOOLEAN NOT NULL DEFAULT 0", "is_archived": "BOOLEAN NOT NULL DEFAULT 0"}
+            for name, definition in additions.items():
+                if name not in form_columns:
+                    connection.execute(text(f"ALTER TABLE forms ADD COLUMN {name} {definition}"))

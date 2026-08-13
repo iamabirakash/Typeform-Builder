@@ -10,6 +10,10 @@ export type FormListItem = {
   status: "draft" | "published";
   response_count: number;
   updated_at: string | null;
+  tags?: string[] | null;
+  folder?: string | null;
+  is_favorite: boolean;
+  is_archived: boolean;
 };
 
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {

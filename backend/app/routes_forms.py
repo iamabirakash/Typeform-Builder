@@ -7,9 +7,9 @@ from sqlalchemy.orm import Session, selectinload
 
 from .database import get_db
 from .auth import current_creator
-from .models import Creator, Form, Question
+from .models import Creator, Form, FormActivity, Question
 from .models_response import Response
-from .schemas import FormCreate, FormListItem, FormOut, FormUpdate, QuestionCreate, QuestionOut, QuestionUpdate, ReorderRequest
+from .schemas import ActivityOut, FormCreate, FormListItem, FormOut, FormUpdate, QuestionCreate, QuestionOut, QuestionUpdate, ReorderRequest, TemplateOut
 
 router = APIRouter(prefix="/api")
 
@@ -45,15 +45,33 @@ def owned_question(db: Session, question_id: int, creator: Creator) -> Question:
         raise HTTPException(status_code=403, detail="You do not own this question")
     return question
 
+def log_activity(db: Session, form_id: int, action: str, details: str | None = None):
+    db.add(FormActivity(form_id=form_id, action=action, details=details))
+
 @router.get("/forms", response_model=list[FormListItem])
-def list_forms(creator: Creator = Depends(current_creator), db: Session = Depends(get_db)):
-    rows = db.execute(select(Form, func.count(Response.id)).outerjoin(Response).where(Form.creator_id == creator.id).group_by(Form.id).order_by(Form.updated_at.desc())).all()
-    return [FormListItem(id=form.id, title=form.title, status=form.status, response_count=count, updated_at=form.updated_at) for form, count in rows]
+def list_forms(search: str | None = None, folder: str | None = None, archived: bool = False, creator: Creator = Depends(current_creator), db: Session = Depends(get_db)):
+    query = select(Form, func.count(Response.id)).outerjoin(Response).where(Form.creator_id == creator.id, Form.is_archived == archived).group_by(Form.id).order_by(Form.is_favorite.desc(), Form.updated_at.desc())
+    if search:
+        query = query.where(Form.title.ilike(f"%{search}%"))
+    if folder:
+        query = query.where(Form.folder == folder)
+    rows = db.execute(query).all()
+    return [FormListItem(id=form.id, title=form.title, status=form.status, response_count=count, updated_at=form.updated_at, tags=form.tags, folder=form.folder, is_favorite=form.is_favorite, is_archived=form.is_archived) for form, count in rows]
+
+@router.get("/forms/templates", response_model=list[TemplateOut])
+def list_templates(creator: Creator = Depends(current_creator)):
+    return [
+        TemplateOut(id="customer-feedback", title="Customer feedback", description="Learn what customers think.", questions=[{"type": "rating", "title": "How would you rate your experience?", "required": True, "settings": {"min": 1, "max": 5}}, {"type": "long_text", "title": "What could we improve?"}]),
+        TemplateOut(id="event-signup", title="Event signup", description="Collect registrations quickly.", questions=[{"type": "short_text", "title": "What is your name?", "required": True}, {"type": "email", "title": "What is your email?", "required": True}]),
+        TemplateOut(id="team-pulse", title="Team pulse", description="Run a lightweight team check-in.", questions=[{"type": "rating", "title": "How are you feeling this week?", "settings": {"min": 1, "max": 5}}, {"type": "long_text", "title": "Anything you want to share?"}]),
+    ]
 
 @router.post("/forms", response_model=FormOut, status_code=status.HTTP_201_CREATED)
 def create_form(payload: FormCreate, creator: Creator = Depends(current_creator), db: Session = Depends(get_db)):
     form = Form(creator_id=creator.id, title=payload.title.strip(), theme={"color": "#635bff", "font": "Inter", "background": "#ffffff"})
     db.add(form)
+    db.commit()
+    log_activity(db, form.id, "created")
     db.commit()
     return get_form(db, form.id)
 
@@ -67,6 +85,7 @@ def update_form(form_id: int, payload: FormUpdate, creator: Creator = Depends(cu
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(form, key, value.strip() if isinstance(value, str) and key == "title" else value)
     form.updated_at = datetime.utcnow()
+    log_activity(db, form.id, "updated", ", ".join(payload.model_dump(exclude_unset=True).keys()))
     db.commit()
     return get_form(db, form_id)
 
@@ -75,6 +94,29 @@ def delete_form(form_id: int, creator: Creator = Depends(current_creator), db: S
     form = owned_form(db, form_id, creator)
     db.delete(form)
     db.commit()
+
+@router.get("/forms/{form_id}/activity", response_model=list[ActivityOut])
+def form_activity(form_id: int, creator: Creator = Depends(current_creator), db: Session = Depends(get_db)):
+    form = owned_form(db, form_id, creator)
+    return db.scalars(select(FormActivity).where(FormActivity.form_id == form.id).order_by(FormActivity.created_at.desc()).limit(50)).all()
+
+@router.post("/forms/{form_id}/archive", response_model=FormOut)
+def archive_form(form_id: int, creator: Creator = Depends(current_creator), db: Session = Depends(get_db)):
+    form = owned_form(db, form_id, creator)
+    form.is_archived = True
+    form.updated_at = datetime.utcnow()
+    log_activity(db, form.id, "archived")
+    db.commit()
+    return get_form(db, form.id)
+
+@router.post("/forms/{form_id}/restore", response_model=FormOut)
+def restore_form(form_id: int, creator: Creator = Depends(current_creator), db: Session = Depends(get_db)):
+    form = owned_form(db, form_id, creator)
+    form.is_archived = False
+    form.updated_at = datetime.utcnow()
+    log_activity(db, form.id, "restored")
+    db.commit()
+    return get_form(db, form.id)
 
 @router.post("/forms/{form_id}/publish", response_model=FormOut)
 def publish_form(form_id: int, creator: Creator = Depends(current_creator), db: Session = Depends(get_db)):
@@ -99,7 +141,7 @@ def unpublish_form(form_id: int, creator: Creator = Depends(current_creator), db
 @router.post("/forms/{form_id}/duplicate", response_model=FormOut, status_code=status.HTTP_201_CREATED)
 def duplicate_form(form_id: int, creator: Creator = Depends(current_creator), db: Session = Depends(get_db)):
     source = owned_form(db, form_id, creator)
-    duplicate = Form(creator_id=source.creator_id, title=f"{source.title} copy", description=source.description, theme=source.theme, welcome_message=source.welcome_message, thank_you_message=source.thank_you_message, status="draft")
+    duplicate = Form(creator_id=source.creator_id, title=f"{source.title} copy", description=source.description, theme=source.theme, welcome_message=source.welcome_message, thank_you_message=source.thank_you_message, tags=list(source.tags or []), folder=source.folder, status="draft")
     db.add(duplicate)
     db.flush()
     for question in source.questions:
