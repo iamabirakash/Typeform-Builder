@@ -43,3 +43,9 @@ app.include_router(results_router)
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/cron/update-data")
+def cron_update_data() -> dict[str, str]:
+    """Lightweight public endpoint for external uptime monitors."""
+    return {"status": "success", "message": "Data updated"}
