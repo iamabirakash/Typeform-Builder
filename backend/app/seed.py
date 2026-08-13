@@ -5,6 +5,7 @@ import json
 from sqlalchemy import select
 
 from .database import SessionLocal, init_db
+from .auth import hash_password
 from .models import Creator, Form, Question
 from .models_response import Answer, Response
 
@@ -53,9 +54,11 @@ def run_seed():
     try:
         creator = db.get(Creator, 1)
         if creator is None:
-            creator = Creator(id=1, name="Default Creator", email="creator@example.com")
+            creator = Creator(id=1, name="Default Creator", email="creator@example.com", password_hash=hash_password("password123"), auth_provider="password")
             db.add(creator)
             db.flush()
+        elif not creator.password_hash:
+            creator.password_hash = hash_password("password123")
 
         feedback_questions = [
             {"type": "rating", "title": "How would you rate your overall experience?", "required": True, "settings": {"min": 1, "max": 5}},

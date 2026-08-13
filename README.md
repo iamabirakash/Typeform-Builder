@@ -4,6 +4,8 @@ A focused clone of Typeform’s core product: creators build forms, publish shar
 
 ## Setup instructions
 
+Creator accounts use email/password authentication or Google OAuth. Public respondent links remain available without login.
+
 Prerequisites:
 
 - Python 3.11+
@@ -23,6 +25,22 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 The SQLite database is created automatically as `backend/typeform.db`. It is ignored by Git. The seed command is idempotent and creates the default creator, two published demo forms, and eight sample responses per form.
+
+After seeding locally, use `creator@example.com` / `password123` to view the demo workspace. Change this password or remove the demo account before using the deployment for real data.
+
+### Google sign-in configuration
+
+Set these backend variables after creating a Google OAuth Web application:
+
+```text
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_REDIRECT_URI=https://your-api.example.com/api/auth/google/callback
+FRONTEND_URL=https://your-frontend.example.com
+JWT_SECRET=use-a-long-random-secret
+```
+
+Add the callback URL exactly to Google Cloud Console. Without these variables, the email/password flow still works and the Google button reports that Google sign-in is not configured.
 
 ### Frontend
 
@@ -59,7 +77,7 @@ npm run start
 
 The frontend is a Next.js App Router application under `frontend/src/app`. Creator routes live under `/forms`; the public respondent route is `/f/[slug]`. A small typed API client centralizes backend calls.
 
-The backend is a FastAPI application under `backend/app`. SQLAlchemy models map directly to the form, question, response, and answer tables. JSON columns hold theme, options, respondent metadata, and type-specific settings. The default creator is always ID `1`; no authentication layer is included.
+The backend is a FastAPI application under `backend/app`. SQLAlchemy models map directly to the form, question, response, and answer tables. JSON columns hold theme, options, respondent metadata, and type-specific settings. Creator accounts authenticate with JWT bearer tokens; public respondent routes remain unauthenticated.
 
 Respondent answers are saved incrementally as the user advances. Answer values are stored as strings, with JSON decoding used when returning aggregate and detail data. Publishing assigns a stable public slug and gates the public form endpoint.
 
@@ -139,7 +157,7 @@ CREATE TABLE answers (
 
 ## Assumptions made
 
-- There is one default creator with ID `1`; authentication and login/signup are intentionally omitted.
+- A default demo creator with ID `1` is seeded for local development; normal accounts are created through signup or Google OAuth.
 - SQLite is the default database and is created on backend startup.
 - JSON columns are used for flexible themes, options, settings, and respondent metadata.
 - Answers are stored as text; JSON values such as numbers are stringified and normalized when read.

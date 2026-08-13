@@ -3,8 +3,13 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .config import load_local_env
+
+load_local_env()
+
 from .database import init_db
 from .routes_forms import router as forms_router
+from .routes_auth import router as auth_router
 from .routes_public import router as public_router
 from .routes_results import router as results_router
 
@@ -30,6 +35,7 @@ app.add_middleware(
 
 init_db()
 app.include_router(forms_router)
+app.include_router(auth_router)
 app.include_router(public_router)
 app.include_router(results_router)
 

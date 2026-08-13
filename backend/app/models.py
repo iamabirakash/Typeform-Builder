@@ -11,6 +11,9 @@ class Creator(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, default="Default Creator")
     email: Mapped[str | None] = mapped_column(String, nullable=True)
+    password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
+    auth_provider: Mapped[str] = mapped_column(String, default="password", nullable=False)
+    google_sub: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
     forms: Mapped[list["Form"]] = relationship(back_populates="creator", cascade="all, delete-orphan")
 
 class Form(Base):

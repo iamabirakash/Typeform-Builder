@@ -133,3 +133,24 @@ class FormSummary(BaseModel):
     total_responses: int
     completed_responses: int
     questions: list[SummaryItem]
+
+class SignupRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    email: str = Field(min_length=3, max_length=320)
+    password: str = Field(min_length=8, max_length=128)
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class CreatorOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    email: str | None
+    auth_provider: str
+
+class AuthResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    creator: CreatorOut
