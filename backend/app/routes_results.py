@@ -47,7 +47,7 @@ def read_response(form_id: int, response_id: int, creator = Depends(current_crea
     answers = [AnswerOut(question_id=a.question_id, question_title=a.question.title, value=decode(a.value)) for a in response.answers]
     return ResponseDetail(id=response.id, form_id=response.form_id, submitted_at=response.submitted_at, is_complete=response.is_complete, respondent_meta=response.respondent_meta, answers=answers)
 
-@router.get("/forms/{form_id}/responses/export.csv")
+@router.get("/forms/{form_id}/responses-export.csv")
 def export_responses_csv(form_id: int, creator = Depends(current_creator), db: Session = Depends(get_db)):
     form = require_form(db, form_id, creator)
     questions = db.scalars(select(Question).where(Question.form_id == form_id).order_by(Question.order_index)).all()
