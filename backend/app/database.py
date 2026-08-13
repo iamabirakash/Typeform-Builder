@@ -44,3 +44,6 @@ def init_db() -> None:
             for name, definition in additions.items():
                 if name not in columns:
                     connection.execute(text(f"ALTER TABLE creators ADD COLUMN {name} {definition}"))
+            form_columns = {column["name"] for column in inspect(connection).get_columns("forms")}
+            if "welcome_message" not in form_columns:
+                connection.execute(text("ALTER TABLE forms ADD COLUMN welcome_message VARCHAR DEFAULT 'Welcome! Let''s get started.'"))

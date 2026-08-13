@@ -26,6 +26,7 @@ class Form(Base):
     status: Mapped[str] = mapped_column(String, default="draft", nullable=False)
     public_slug: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
     theme: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    welcome_message: Mapped[str] = mapped_column(String, default="Welcome! Let's get started.")
     thank_you_message: Mapped[str] = mapped_column(String, default="Thanks for completing this form!")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), onupdate=func.current_timestamp())

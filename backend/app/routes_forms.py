@@ -99,13 +99,26 @@ def unpublish_form(form_id: int, creator: Creator = Depends(current_creator), db
 @router.post("/forms/{form_id}/duplicate", response_model=FormOut, status_code=status.HTTP_201_CREATED)
 def duplicate_form(form_id: int, creator: Creator = Depends(current_creator), db: Session = Depends(get_db)):
     source = owned_form(db, form_id, creator)
-    duplicate = Form(creator_id=source.creator_id, title=f"{source.title} copy", description=source.description, theme=source.theme, thank_you_message=source.thank_you_message, status="draft")
+    duplicate = Form(creator_id=source.creator_id, title=f"{source.title} copy", description=source.description, theme=source.theme, welcome_message=source.welcome_message, thank_you_message=source.thank_you_message, status="draft")
     db.add(duplicate)
     db.flush()
     for question in source.questions:
         db.add(Question(form_id=duplicate.id, type=question.type, title=question.title, description=question.description, required=question.required, order_index=question.order_index, options=question.options, settings=question.settings))
     db.commit()
     return get_form(db, duplicate.id)
+
+@router.post("/questions/{question_id}/duplicate", response_model=QuestionOut, status_code=status.HTTP_201_CREATED)
+def duplicate_question(question_id: int, creator: Creator = Depends(current_creator), db: Session = Depends(get_db)):
+    source = owned_question(db, question_id, creator)
+    siblings = db.scalars(select(Question).where(Question.form_id == source.form_id).order_by(Question.order_index)).all()
+    for item in siblings:
+        if item.order_index > source.order_index:
+            item.order_index += 1
+    duplicate = Question(form_id=source.form_id, type=source.type, title=f"{source.title} copy", description=source.description, required=source.required, order_index=source.order_index + 1, options=source.options, settings=source.settings)
+    db.add(duplicate)
+    db.commit()
+    db.refresh(duplicate)
+    return duplicate
 
 @router.post("/forms/{form_id}/questions", response_model=QuestionOut, status_code=status.HTTP_201_CREATED)
 def create_question(form_id: int, payload: QuestionCreate, creator: Creator = Depends(current_creator), db: Session = Depends(get_db)):

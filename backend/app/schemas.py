@@ -12,6 +12,7 @@ class FormUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=200)
     description: str | None = None
     theme: dict[str, Any] | None = None
+    welcome_message: str | None = Field(default=None, max_length=1000)
     thank_you_message: str | None = Field(default=None, max_length=1000)
 
 class QuestionCreate(BaseModel):
@@ -65,6 +66,7 @@ class FormOut(BaseModel):
     status: str
     public_slug: str | None
     theme: dict[str, Any] | None
+    welcome_message: str
     thank_you_message: str
     created_at: datetime | None
     updated_at: datetime | None
@@ -79,6 +81,7 @@ class PublicFormOut(BaseModel):
     title: str
     description: str | None
     theme: dict[str, Any] | None
+    welcome_message: str
     thank_you_message: str
     public_slug: str
     questions: list[QuestionOut]

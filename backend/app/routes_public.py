@@ -61,6 +61,11 @@ def upsert_public_answer(response_id: int, payload: AnswerUpsert, db: Session = 
 @router.post("/public/responses/{response_id}/complete")
 def complete_public_response(response_id: int, db: Session = Depends(get_db)):
     response = response_for_public(db, response_id)
+    questions = db.scalars(select(Question).where(Question.form_id == response.form_id)).all()
+    answered = {answer.question_id for answer in response.answers}
+    missing = [question.title for question in questions if question.required and question.id not in answered]
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Required questions unanswered: {', '.join(missing)}")
     response.is_complete = True
     response.submitted_at = datetime.utcnow()
     db.commit()
