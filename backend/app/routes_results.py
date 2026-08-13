@@ -1,8 +1,11 @@
 import json
+import csv
+import io
 from collections import Counter
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
@@ -43,6 +46,22 @@ def read_response(form_id: int, response_id: int, creator = Depends(current_crea
         raise HTTPException(status_code=404, detail="Response not found")
     answers = [AnswerOut(question_id=a.question_id, question_title=a.question.title, value=decode(a.value)) for a in response.answers]
     return ResponseDetail(id=response.id, form_id=response.form_id, submitted_at=response.submitted_at, is_complete=response.is_complete, respondent_meta=response.respondent_meta, answers=answers)
+
+@router.get("/forms/{form_id}/responses/export.csv")
+def export_responses_csv(form_id: int, creator = Depends(current_creator), db: Session = Depends(get_db)):
+    form = require_form(db, form_id, creator)
+    questions = db.scalars(select(Question).where(Question.form_id == form_id).order_by(Question.order_index)).all()
+    responses = db.scalars(select(Response).options(selectinload(Response.answers)).where(Response.form_id == form_id).order_by(Response.submitted_at.asc())).all()
+    output = io.StringIO(newline="")
+    writer = csv.writer(output)
+    writer.writerow(["response_id", "submitted_at", "status", *[question.title for question in questions]])
+    for response in responses:
+        values = {answer.question_id: decode(answer.value) for answer in response.answers}
+        row = [response.id, response.submitted_at.isoformat() if response.submitted_at else "", "complete" if response.is_complete else "partial"]
+        row.extend(json.dumps(values.get(question.id), ensure_ascii=False) if isinstance(values.get(question.id), (dict, list)) else values.get(question.id, "") for question in questions)
+        writer.writerow(row)
+    filename = f"{form.title.strip().replace(' ', '-') or 'form'}-responses.csv"
+    return StreamingResponse(iter([output.getvalue()]), media_type="text/csv; charset=utf-8", headers={"Content-Disposition": f'attachment; filename="{filename}"'})
 
 @router.get("/forms/{form_id}/summary", response_model=FormSummary)
 def form_summary(form_id: int, creator = Depends(current_creator), db: Session = Depends(get_db)):

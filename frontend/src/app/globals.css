@@ -3,5 +3,14 @@
 @tailwind utilities;
 
 :root { color-scheme: light; }
+:root.dark { color-scheme: dark; }
 * { box-sizing: border-box; }
 body { margin: 0; background: #ffffff; color: #0f172a; font-family: Arial, Helvetica, sans-serif; }
+:root.dark body { background: #0f172a; color: #e2e8f0; }
+:root.dark .bg-white { background-color: #182235 !important; }
+:root.dark .bg-slate-50, :root.dark .bg-\[\#f7f7fb\] { background-color: #0f172a !important; }
+:root.dark .text-slate-950, :root.dark .text-black { color: #f8fafc !important; }
+:root.dark .text-slate-600, :root.dark .text-slate-500, :root.dark .text-slate-400 { color: #94a3b8 !important; }
+:root.dark .border-slate-200, :root.dark .border-slate-300 { border-color: #334155 !important; }
+:root.dark input, :root.dark textarea, :root.dark select { background-color: #182235; color: #f8fafc; border-color: #334155; }
+:root.dark .bg-slate-100 { background-color: #243044 !important; }

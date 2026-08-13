@@ -40,3 +40,11 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
 export function saveToken(token: string) { window.localStorage.setItem("typeform_access_token", token); }
 export function clearToken() { window.localStorage.removeItem("typeform_access_token"); }
 export function hasToken() { return typeof window !== "undefined" && Boolean(window.localStorage.getItem("typeform_access_token")); }
+
+export async function downloadFile(path: string, filename: string) {
+  const token = window.localStorage.getItem("typeform_access_token");
+  const response = await fetch(`${API_URL}${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  if (!response.ok) throw new ApiError("Could not download the file", response.status);
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
+}

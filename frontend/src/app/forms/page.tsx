@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError, api, clearToken, hasToken, type FormListItem } from "@/lib/api";
 import { Toast } from "@/components/toast";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type Template = { id: string; title: string; description: string; questions: { type: string; title: string; required?: boolean; settings?: Record<string, unknown> }[] };
 type Activity = { id: number; action: string; details: string | null; created_at: string | null };
