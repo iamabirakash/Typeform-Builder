@@ -13,12 +13,15 @@ from .models_response import Answer, Response
 def get_or_create_form(db, creator, title, description, questions):
     form = db.scalar(select(Form).where(Form.creator_id == creator.id, Form.title == title))
     if form is None:
+        slug = title.lower().replace(" ", "-") + "-demo"
+        if db.scalar(select(Form).where(Form.public_slug == slug)):
+            slug = f"{slug}-{creator.id}"
         form = Form(
             creator_id=creator.id,
             title=title,
             description=description,
             status="published",
-            public_slug=title.lower().replace(" ", "-") + "-demo",
+            public_slug=slug,
             theme={"color": "#635bff", "font": "Inter", "background": "#ffffff"},
             thank_you_message="Thanks for sharing your feedback!",
         )
@@ -52,13 +55,19 @@ def run_seed():
     init_db()
     db = SessionLocal()
     try:
-        creator = db.get(Creator, 1)
+        creator = db.scalar(select(Creator).where(Creator.email == "creator@example.com"))
         if creator is None:
-            creator = Creator(id=1, name="Default Creator", email="creator@example.com", password_hash=hash_password("password123"), auth_provider="password")
+            creator = Creator(name="Default Creator", email="creator@example.com", password_hash=hash_password("password123"), auth_provider="password")
             db.add(creator)
             db.flush()
-        elif not creator.password_hash:
-            creator.password_hash = hash_password("password123")
+        else:
+            # Repair the legacy default creator so the documented demo login works.
+            if not creator.email:
+                creator.email = "creator@example.com"
+            if not creator.password_hash:
+                creator.password_hash = hash_password("password123")
+            if not creator.auth_provider:
+                creator.auth_provider = "password"
 
         feedback_questions = [
             {"type": "rating", "title": "How would you rate your overall experience?", "required": True, "settings": {"min": 1, "max": 5}},

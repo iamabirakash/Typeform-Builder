@@ -4,6 +4,21 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, downloadFile } from "@/lib/api";
 import { ThemeToggle } from "@/components/theme-toggle";
+import localFont from "next/font/local";
+
+const typeformFont = localFont({
+  src: "../../../../../public/font/typeform.woff2",
+  variable: "--font-typeform",
+  weight: "700",
+  display: "swap",
+});
+
+const regFont = localFont({
+  src: "../../../../../public/font/reg.woff2",
+  variable: "--font-reg",
+  weight: "400",
+  display: "swap",
+});
 
 type Form = { id: number; title: string };
 type ResponseItem = { id: number; submitted_at: string | null; is_complete: boolean };
@@ -19,15 +34,15 @@ const displayValue = (value: unknown) => typeof value === "object" ? JSON.string
 function Bars({ values }: { values: Record<string, number> }) {
   const max = Math.max(...Object.values(values), 1);
   return (
-    <div className="mt-5 space-y-3">
+    <div className="mt-6 space-y-4">
       {Object.entries(values).map(([label, count]) => (
         <div key={label}>
-          <div className="mb-1 flex justify-between text-sm">
-            <span className="truncate pr-3 text-app-text-muted">{label}</span>
-            <span className="font-semibold text-app-text">{count}</span>
+          <div className="mb-2 flex justify-between text-sm">
+            <span style={{ fontFamily: "var(--font-reg)" }} className="truncate pr-3 text-app-text-muted">{label}</span>
+            <span style={{ fontFamily: "var(--font-reg)" }} className="font-semibold text-app-text">{count}</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-app-border">
-            <div className="h-full rounded-full bg-app-accent" style={{ width: `${(count / max) * 100}%` }} />
+          <div className="h-1.5 overflow-hidden rounded-full bg-app-border">
+            <div className="h-full rounded-full bg-app-text transition-all duration-500 ease-out" style={{ width: `${(count / max) * 100}%` }} />
           </div>
         </div>
       ))}
@@ -56,114 +71,130 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
   const totalPages = page ? Math.max(1, Math.ceil(page.total / page.page_size)) : 1;
   
   return (
-    <main className="min-h-screen bg-app-bg text-app-text">
-      <header className="border-b border-app-border bg-app-surface">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+    <main style={{ fontFamily: "var(--font-reg)" }} className={`min-h-screen bg-app-bg text-app-text ${typeformFont.variable} ${regFont.variable}`}>
+      <header className="sticky top-0 z-10 border-b border-app-border bg-app-bg/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/forms" className="grid h-9 w-9 place-items-center rounded-xl bg-app-accent font-bold text-white">t.</Link>
+            <Link href="/forms" style={{ fontFamily: "var(--font-reg)" }} className="grid h-10 w-10 place-items-center rounded-xl bg-app-text font-black text-app-bg transition hover:scale-105">t.</Link>
             <div>
-              <Link href={`/forms/${formId}/edit`} className="text-sm text-app-text-muted hover:text-app-accent">{form?.title ?? "Form"}</Link>
-              <h1 className="text-xl font-bold">Results</h1>
+              <Link href={`/forms/${formId}/edit`} style={{ fontFamily: "var(--font-reg)" }} className="text-xs text-app-text-muted hover:text-app-text transition">{form?.title ?? "Loading..."}</Link>
+              <h1 style={{ fontFamily: "var(--font-typeform)" }} className="text-lg font-bold tracking-tight">Results & Insights</h1>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <ThemeToggle />
-            <button onClick={() => void downloadFile(`/api/forms/${formId}/responses-export.csv`, `${form?.title ?? "form"}-responses.csv`).catch((err) => setError(err instanceof Error ? err.message : "Could not export responses"))} className="rounded-xl bg-app-accent px-4 py-2 text-sm font-semibold text-white hover:bg-app-accent-hover">
+            <button onClick={() => void downloadFile(`/api/forms/${formId}/responses-export.csv`, `${form?.title ?? "form"}-responses.csv`).catch((err) => setError(err instanceof Error ? err.message : "Could not export responses"))} className="rounded-xl bg-app-text px-4 py-2.5 text-sm font-semibold text-app-bg transition hover:opacity-90">
               Export CSV
             </button>
-            <Link href={`/forms/${formId}/edit`} className="rounded-xl border border-app-border px-4 py-2 text-sm font-semibold hover:border-app-accent hover:text-app-accent">
-              Back to builder
+            <Link href={`/forms/${formId}/edit`} className="rounded-xl border border-app-border bg-transparent px-4 py-2.5 text-sm font-semibold transition hover:border-app-text hover:text-app-text">
+              Builder
             </Link>
           </div>
         </div>
       </header>
       
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <div className="mb-8">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-app-accent">Insights</p>
-          <h2 className="text-4xl font-bold tracking-tight">See what people said</h2>
-          <p className="mt-3 text-app-text-muted">Understand every response and spot the patterns that matter.</p>
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="mb-12 flex flex-col items-center text-center">
+          <p style={{ fontFamily: "var(--font-reg)" }} className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-app-text-muted">Form Analytics</p>
+          <h2 style={{ fontFamily: "var(--font-typeform)" }} className="text-4xl font-bold tracking-tight md:text-5xl">Understand your data</h2>
+          <p style={{ fontFamily: "var(--font-reg)" }} className="mt-4 max-w-lg text-app-text-muted">Dive deep into every response or see the big picture at a glance. Uncover the patterns that matter.</p>
         </div>
         
-        {error && <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">{error}</div>}
+        {error && <div className="mb-8 rounded-2xl border border-red-200 bg-red-50 px-6 py-5 text-sm text-red-700 shadow-sm">{error}</div>}
         
-        <div className="mb-6 flex max-w-sm gap-1 rounded-xl bg-app-border p-1">
-          <button onClick={() => setTab("responses")} className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold ${tab === "responses" ? "bg-app-surface shadow-sm text-app-text" : "text-app-text-muted hover:text-app-text"}`}>Responses</button>
-          <button onClick={() => setTab("summary")} className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold ${tab === "summary" ? "bg-app-surface shadow-sm text-app-text" : "text-app-text-muted hover:text-app-text"}`}>Summary</button>
+        <div className="mb-10 flex justify-center">
+          <div className="inline-flex gap-2 rounded-2xl border border-app-border bg-app-bg p-1.5 shadow-sm">
+            <button onClick={() => setTab("responses")} style={{ fontFamily: "var(--font-reg)" }} className={`rounded-xl px-8 py-2.5 text-sm font-medium transition-all ${tab === "responses" ? "bg-app-text text-app-bg shadow-md" : "text-app-text-muted hover:text-app-text hover:bg-app-surface"}`}>Individual Responses</button>
+            <button onClick={() => setTab("summary")} style={{ fontFamily: "var(--font-reg)" }} className={`rounded-xl px-8 py-2.5 text-sm font-medium transition-all ${tab === "summary" ? "bg-app-text text-app-bg shadow-md" : "text-app-text-muted hover:text-app-text hover:bg-app-surface"}`}>Visual Summary</button>
+          </div>
         </div>
         
         {loading ? (
-          <div className="h-64 animate-pulse rounded-3xl bg-app-surface" />
+          <div className="mx-auto max-w-4xl h-64 animate-pulse rounded-3xl bg-app-surface border border-app-border" />
         ) : tab === "responses" ? (
-          <div className="overflow-hidden rounded-3xl border border-app-border bg-app-surface shadow-sm">
+          <div className="mx-auto max-w-5xl overflow-hidden rounded-3xl border border-app-border bg-app-surface shadow-sm">
             {!page?.items.length ? (
-              <div className="px-6 py-20 text-center">
-                <h3 className="text-lg font-semibold">No responses yet</h3>
-                <p className="mt-2 text-sm text-app-text-muted">Publish your form and share the link to start collecting responses.</p>
+              <div className="px-6 py-24 text-center">
+                <div className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full bg-app-bg text-2xl text-app-text-muted">∅</div>
+                <h3 style={{ fontFamily: "var(--font-typeform)" }} className="text-xl font-bold">No responses yet</h3>
+                <p style={{ fontFamily: "var(--font-reg)" }} className="mt-3 text-sm text-app-text-muted">Once people start submitting your form, their answers will appear here.</p>
               </div>
             ) : (
               <>
-                <table className="w-full text-left">
-                  <thead className="border-b border-app-border bg-app-bg text-xs uppercase tracking-wider text-app-text-muted">
+                <table className="w-full text-left border-collapse">
+                  <thead className="border-b border-app-border bg-app-bg/50 text-xs uppercase tracking-widest text-app-text-muted">
                     <tr>
-                      <th className="px-6 py-4">Response</th>
-                      <th className="px-6 py-4">Submitted</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th />
+                      <th className="px-8 py-5 font-semibold">Response</th>
+                      <th className="px-8 py-5 font-semibold">Submitted</th>
+                      <th className="px-8 py-5 font-semibold">Status</th>
+                      <th className="px-8 py-5 text-right font-semibold">View</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-app-border">
                     {page.items.map((item, index) => {
                       const number = (pageNumber - 1) * page.page_size + index + 1;
                       return (
-                        <tr key={item.id} onClick={() => void openResponse(item.id, number)} className="cursor-pointer hover:bg-app-bg">
-                          <td className="px-6 py-5 font-semibold">#{number}</td>
-                          <td className="px-6 py-5 text-sm text-app-text-muted">{formatDate(item.submitted_at)}</td>
-                          <td className="px-6 py-5">
-                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.is_complete ? "bg-emerald-500/10 text-emerald-600" : "bg-amber-500/10 text-amber-600"}`}>{item.is_complete ? "Complete" : "Partial"}</span>
+                        <tr key={item.id} onClick={() => void openResponse(item.id, number)} className="group cursor-pointer transition hover:bg-app-bg">
+                          <td className="px-8 py-6">
+                            <span style={{ fontFamily: "var(--font-typeform)" }} className="text-base font-bold text-app-text">#{number}</span>
                           </td>
-                          <td className="px-6 py-5 text-right text-app-text-muted">→</td>
+                          <td className="px-8 py-6 text-sm text-app-text-muted">{formatDate(item.submitted_at)}</td>
+                          <td className="px-8 py-6">
+                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide ${item.is_complete ? "bg-emerald-500/10 text-emerald-600" : "bg-app-border text-app-text-muted"}`}>{item.is_complete ? "Complete" : "Partial"}</span>
+                          </td>
+                          <td className="px-8 py-6 text-right">
+                            <span className="inline-block translate-x-0 text-app-text-muted opacity-50 transition-all group-hover:translate-x-1 group-hover:opacity-100">→</span>
+                          </td>
                         </tr>
                       );
                     })}
                   </tbody>
                 </table>
-                <div className="flex items-center justify-between border-t border-app-border px-6 py-4 text-sm text-app-text-muted">
-                  <span>{page.total} total response{page.total === 1 ? "" : "s"}</span>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setPageNumber((n) => Math.max(1, n - 1))} disabled={pageNumber === 1} className="rounded-lg border border-app-border px-3 py-1.5 disabled:opacity-40 hover:bg-app-bg">←</button>
-                    <span>Page {pageNumber} of {totalPages}</span>
-                    <button onClick={() => setPageNumber((n) => Math.min(totalPages, n + 1))} disabled={pageNumber === totalPages} className="rounded-lg border border-app-border px-3 py-1.5 disabled:opacity-40 hover:bg-app-bg">→</button>
+                <div className="flex items-center justify-between border-t border-app-border bg-app-bg/50 px-8 py-5 text-sm text-app-text-muted">
+                  <span style={{ fontFamily: "var(--font-reg)" }}>{page.total} response{page.total === 1 ? "" : "s"} total</span>
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => setPageNumber((n) => Math.max(1, n - 1))} disabled={pageNumber === 1} className="flex h-8 w-8 items-center justify-center rounded-full border border-app-border transition disabled:opacity-30 hover:bg-app-border">→</button>
+                    <span style={{ fontFamily: "var(--font-reg)" }} className="font-medium">Page {pageNumber} of {totalPages}</span>
+                    <button onClick={() => setPageNumber((n) => Math.min(totalPages, n + 1))} disabled={pageNumber === totalPages} className="flex h-8 w-8 items-center justify-center rounded-full border border-app-border transition disabled:opacity-30 hover:bg-app-border">→</button>
                   </div>
                 </div>
               </>
             )}
           </div>
         ) : (
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2">
             {summary?.questions.map((item) => (
-              <article key={item.question_id} className="rounded-3xl border border-app-border bg-app-surface p-6 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wider text-app-accent">{item.type.replaceAll("_", " ")}</p>
-                <h3 className="mt-2 text-lg font-semibold text-app-text">{item.question_title}</h3>
-                <span className="mt-3 inline-block rounded-full bg-app-border px-3 py-1 text-xs font-semibold text-app-text">{item.total_answers} answers</span>
-                
-                {item.counts && <Bars values={item.counts} />}
-                
-                {item.average !== null && (
-                  <>
-                    <p className="mt-8 text-4xl font-bold text-app-text">{item.average}</p>
-                    <p className="text-sm text-app-text-muted">Average rating</p>
-                    {item.distribution && <Bars values={item.distribution} />}
-                  </>
-                )}
-                
-                {item.samples && (
-                  <div className="mt-5 space-y-2">
-                    {item.samples.map((sample, index) => (
-                      <div key={index} className="rounded-xl bg-app-bg px-4 py-3 text-sm text-app-text-muted">{displayValue(sample)}</div>
-                    ))}
+              <article key={item.question_id} className="flex flex-col rounded-3xl border border-app-border bg-app-surface p-8 shadow-sm transition hover:shadow-md">
+                <div className="mb-6 flex items-start justify-between gap-4">
+                  <div>
+                    <p style={{ fontFamily: "var(--font-reg)" }} className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-app-text-muted">{item.type.replaceAll("_", " ")}</p>
+                    <h3 style={{ fontFamily: "var(--font-typeform)" }} className="text-xl font-bold leading-tight text-app-text">{item.question_title}</h3>
                   </div>
-                )}
+                  <span className="shrink-0 rounded-full border border-app-border bg-app-bg px-3 py-1 text-xs font-semibold text-app-text-muted">{item.total_answers} answers</span>
+                </div>
+                
+                <div className="mt-auto">
+                  {item.counts && <Bars values={item.counts} />}
+                  
+                  {item.average !== null && (
+                    <div className="mt-6 flex flex-col items-center justify-center rounded-2xl bg-app-bg py-8">
+                      <p style={{ fontFamily: "var(--font-typeform)" }} className="text-5xl font-bold text-app-text">{item.average}</p>
+                      <p style={{ fontFamily: "var(--font-reg)" }} className="mt-2 text-xs font-semibold uppercase tracking-widest text-app-text-muted">Average rating</p>
+                    </div>
+                  )}
+                  {item.average !== null && item.distribution && <Bars values={item.distribution} />}
+                  
+                  {item.samples && (
+                    <div className="mt-6 space-y-3">
+                      <p style={{ fontFamily: "var(--font-reg)" }} className="text-xs font-semibold uppercase tracking-wider text-app-text-muted">Recent responses</p>
+                      {item.samples.map((sample, index) => (
+                        <div key={index} className="rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm text-app-text shadow-sm transition hover:border-app-text/20">
+                          {displayValue(sample)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </article>
             ))}
           </div>
@@ -171,22 +202,33 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
       </section>
       
       {selected && (
-        <div role="dialog" aria-modal="true" className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4 py-8 backdrop-blur-sm" onClick={() => setSelected(null)}>
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-app-surface p-7 shadow-2xl border border-app-border" onClick={(event) => event.stopPropagation()}>
-            <div className="flex items-start justify-between">
+        <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-sm transition-all" onClick={() => setSelected(null)}>
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[2rem] bg-app-surface p-10 shadow-2xl border border-app-border" onClick={(event) => event.stopPropagation()}>
+            <div className="mb-10 flex items-start justify-between border-b border-app-border pb-6">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-app-accent">Response #{selectedNumber}</p>
-                <h2 className="mt-2 text-2xl font-bold text-app-text">{formatDate(selected.submitted_at)}</h2>
-              </div>
-              <button onClick={() => setSelected(null)} aria-label="Close response" className="grid h-9 w-9 place-items-center rounded-lg bg-app-border text-xl text-app-text-muted hover:text-app-text">×</button>
-            </div>
-            <div className="mt-7 space-y-5">
-              {selected.answers.map((answer) => (
-                <div key={answer.question_id} className="border-b border-app-border pb-5 last:border-0">
-                  <p className="text-sm font-semibold text-app-text">{answer.question_title}</p>
-                  <p className="mt-2 whitespace-pre-wrap text-app-text-muted">{displayValue(answer.value)}</p>
+                <div className="flex items-center gap-3">
+                  <span style={{ fontFamily: "var(--font-reg)" }} className="rounded-full bg-app-bg px-3 py-1 text-xs font-bold uppercase tracking-wider text-app-text-muted">Response #{selectedNumber}</span>
+                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${selected.is_complete ? "bg-emerald-500/10 text-emerald-600" : "bg-app-border text-app-text-muted"}`}>{selected.is_complete ? "Complete" : "Partial"}</span>
                 </div>
-              ))}
+                <h2 style={{ fontFamily: "var(--font-typeform)" }} className="mt-4 text-3xl font-bold text-app-text">{formatDate(selected.submitted_at)}</h2>
+              </div>
+              <button onClick={() => setSelected(null)} aria-label="Close response" className="grid h-10 w-10 place-items-center rounded-full bg-app-bg text-lg text-app-text-muted transition hover:bg-app-text hover:text-app-bg">×</button>
+            </div>
+            
+            <div className="space-y-8">
+              {selected.answers.length === 0 ? (
+                <p className="text-center text-app-text-muted italic">No answers provided in this response.</p>
+              ) : (
+                selected.answers.map((answer, index) => (
+                  <div key={answer.question_id} className="group relative rounded-2xl border border-app-border bg-app-bg p-6 transition hover:border-app-text/30">
+                    <span className="absolute -left-3 -top-3 flex h-8 w-8 items-center justify-center rounded-full bg-app-text text-xs font-bold text-app-bg shadow-sm">{index + 1}</span>
+                    <p style={{ fontFamily: "var(--font-typeform)" }} className="text-lg font-bold text-app-text">{answer.question_title}</p>
+                    <div className="mt-4 rounded-xl bg-app-surface p-4">
+                      <p style={{ fontFamily: "var(--font-reg)" }} className="whitespace-pre-wrap text-base text-app-text-muted">{displayValue(answer.value)}</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
