@@ -44,6 +44,8 @@ export default function FormsPage() {
   const [deleteTarget, setDeleteTarget] = useState<FormListItem | null>(null);
   const [activity, setActivity] = useState<{ form: FormListItem; items: Activity[] } | null>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   const loadForms = useCallback(async () => {
     if (!hasToken()) { router.replace(`/auth?next=${encodeURIComponent("/forms")}`); return; }
@@ -93,6 +95,32 @@ export default function FormsPage() {
     try { await api(`/api/forms/${target.id}`, { method: "DELETE" }); setToast("Form deleted"); await loadForms(); }
     catch (err) { setError(err instanceof Error ? err.message : "Could not delete form"); }
     finally { setBusyId(null); }
+  }
+
+  async function generateFormWithAi() {
+    const prompt = aiPrompt.trim();
+    if (!prompt) {
+      setError("Describe the form you want to build.");
+      return;
+    }
+    setAiGenerating(true);
+    setError("");
+    try {
+      const suggestion = await api<{ title: string; description: string; questions: Template["questions"] }>("/api/ai/form-suggestions", {
+        method: "POST",
+        body: JSON.stringify({ prompt }),
+      });
+      const form = await api<{ id: number }>("/api/forms", { method: "POST", body: JSON.stringify({ title: suggestion.title, description: suggestion.description }) });
+      for (const question of suggestion.questions) {
+        await api(`/api/forms/${form.id}/questions`, { method: "POST", body: JSON.stringify(question) });
+      }
+      setAiPrompt("");
+      window.location.href = `/forms/${form.id}/edit`;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not generate form");
+    } finally {
+      setAiGenerating(false);
+    }
   }
 
   const folders = Array.from(new Set(forms.map((form) => form.folder).filter(Boolean))) as string[];
@@ -185,19 +213,37 @@ export default function FormsPage() {
 
           {error && <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">{error}</div>}
 
-          {!showArchived && templates.length > 0 && (
+          {!showArchived && (
             <div className="mb-8 rounded-3xl border border-[#8b5cf6]/25 bg-gradient-to-br from-[#f3e6ff] to-[#e9d9ff] p-6">
-              <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                <div>
-                  <h2 className="text-lg font-bold">Start from a template</h2>
-                  <p className="mt-1 text-sm text-black/60">Get a useful first draft, then make it yours.</p>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                  <div>
+                    <h2 className="text-lg font-bold">Generate a form with AI</h2>
+                    <p className="mt-1 text-sm text-black/60">Describe your goal and we’ll draft a title, description, and starter questions.</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {templates.map((template) => (
+                      <button key={template.id} onClick={() => void createForm(template.title, template)} className="rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                        {template.title}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {templates.map((template) => (
-                    <button key={template.id} onClick={() => void createForm(template.title, template)} className="rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                      {template.title}
-                    </button>
-                  ))}
+                <div className="flex flex-col gap-3 md:flex-row">
+                  <textarea
+                    value={aiPrompt}
+                    onChange={(event) => setAiPrompt(event.target.value)}
+                    placeholder="Example: Collect product feedback from beta users about our onboarding flow"
+                    rows={2}
+                    className="min-h-[72px] flex-1 rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-[#8b5cf6]"
+                  />
+                  <button
+                    onClick={() => void generateFormWithAi()}
+                    disabled={aiGenerating}
+                    className="rounded-2xl bg-[#1c1620] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8b5cf6] disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {aiGenerating ? "Generating…" : "Generate"}
+                  </button>
                 </div>
               </div>
             </div>
