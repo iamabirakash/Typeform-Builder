@@ -15,14 +15,6 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
 }
 
-const thumbnailAccents = [
-  "from-[#f3e6ff] to-[#e0c9ff]",
-  "from-[#ffe9f2] to-[#ffcfe4]",
-  "from-[#e6f7ff] to-[#c9ecff]",
-  "from-[#fff3d6] to-[#ffe3a8]",
-  "from-[#e6ffee] to-[#c6ffdc]",
-];
-
 const sidebarLinks = [
   { label: "Home", icon: "⌂", href: "/forms", active: true },
   { label: "Contacts", icon: "◎", href: "/contacts", active: false },
@@ -126,23 +118,23 @@ export default function FormsPage() {
   const folders = Array.from(new Set(forms.map((form) => form.folder).filter(Boolean))) as string[];
 
   return (
-    <main className="flex min-h-screen bg-[#f7f6fa] text-[#171719]">
+    <main className="flex min-h-screen bg-zinc-50/50 text-zinc-900 font-sans selection:bg-zinc-200">
       {toast && <Toast message={toast} />}
 
-      {/* Icon sidebar */}
-      <aside className="hidden w-20 flex-col items-center justify-between bg-[#1c1620] py-6 lg:flex">
+      {/* Minimal Icon Sidebar */}
+      <aside className="hidden w-20 flex-col items-center justify-between border-r border-zinc-200 bg-white py-6 lg:flex">
         <div className="flex flex-col items-center gap-8">
-          <Link href="/forms" className="grid h-10 w-10 place-items-center rounded-xl bg-white text-sm font-black text-[#1c1620]">
+          <Link href="/forms" className="grid h-10 w-10 place-items-center rounded-xl bg-zinc-900 text-sm font-black text-white transition-transform hover:scale-105">
             t.
           </Link>
-          <nav className="flex flex-col items-center gap-2">
+          <nav className="flex flex-col items-center gap-3">
             {sidebarLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
                 title={link.label}
-                className={`grid h-11 w-11 place-items-center rounded-xl text-lg transition ${
-                  link.active ? "bg-[#8b5cf6] text-white" : "text-white/50 hover:bg-white/10 hover:text-white"
+                className={`grid h-11 w-11 place-items-center rounded-xl text-lg transition-all ${
+                  link.active ? "bg-zinc-100 text-zinc-900 shadow-sm" : "text-zinc-400 hover:bg-zinc-50 hover:text-zinc-900"
                 }`}
               >
                 {link.icon}
@@ -153,96 +145,92 @@ export default function FormsPage() {
         <button
           onClick={() => { clearToken(); router.push("/auth"); }}
           title="Log out"
-          className="grid h-11 w-11 place-items-center rounded-xl text-lg text-white/50 transition hover:bg-white/10 hover:text-white"
+          className="grid h-11 w-11 place-items-center rounded-xl text-lg text-zinc-400 transition hover:bg-zinc-50 hover:text-zinc-900"
         >
           ⏻
         </button>
       </aside>
 
       <div className="flex-1">
-        {/* Top bar */}
-        <header className="border-b border-black/5 bg-white">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-5">
+        {/* Minimal Header */}
+        <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur-md">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
             <Link href="/forms" className="flex items-center gap-2 text-lg font-bold tracking-tight lg:hidden">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#1c1620] text-sm text-white">t.</span>
-              typeform
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-zinc-900 text-xs text-white">t.</span>
             </Link>
             <div className="hidden items-center gap-2 lg:flex">
-              <p className="text-sm font-semibold text-black/40">Workspace</p>
+              <span className="text-sm font-medium text-zinc-500">Workspace</span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <ThemeToggle />
-              <button onClick={() => { clearToken(); router.push("/auth"); }} className="rounded-xl px-3 py-2 text-sm font-semibold text-black/50 hover:bg-black/5">
+              <button onClick={() => { clearToken(); router.push("/auth"); }} className="text-sm font-medium text-zinc-500 transition hover:text-zinc-900">
                 Log out
               </button>
               <button
                 onClick={() => void createForm()}
                 disabled={busyId === -1}
-                className="rounded-full bg-[#1c1620] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#8b5cf6] disabled:cursor-wait disabled:opacity-60"
+                className="rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-50"
               >
-                {busyId === -1 ? "Creating…" : "+ Create form"}
+                {busyId === -1 ? "Creating…" : "Create form"}
               </button>
             </div>
           </div>
         </header>
 
-        <section className="mx-auto max-w-7xl px-6 py-10">
-          <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+        <section className="mx-auto max-w-6xl px-6 py-12">
+          <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div>
-              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#8b5cf6]">Workspace</p>
-              <h1 className="text-4xl font-bold tracking-tight">Your forms</h1>
-              <p className="mt-3 text-black/50">Search, organize, and keep your best forms close.</p>
+              <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">Your forms</h1>
+              <p className="mt-2 text-sm text-zinc-500">Manage, track, and organize your data collection.</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button onClick={() => setShowArchived(false)} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${!showArchived ? "bg-[#1c1620] text-white" : "bg-white text-black/50 hover:bg-black/5"}`}>Active</button>
-              <button onClick={() => setShowArchived(true)} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${showArchived ? "bg-[#1c1620] text-white" : "bg-white text-black/50 hover:bg-black/5"}`}>Archive</button>
+            <div className="flex rounded-lg border border-zinc-200 bg-zinc-100/50 p-1">
+              <button onClick={() => setShowArchived(false)} className={`rounded-md px-4 py-1.5 text-sm font-medium transition-all ${!showArchived ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-500 hover:text-zinc-900"}`}>Active</button>
+              <button onClick={() => setShowArchived(true)} className={`rounded-md px-4 py-1.5 text-sm font-medium transition-all ${showArchived ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-500 hover:text-zinc-900"}`}>Archive</button>
             </div>
           </div>
 
-          <div className="mb-8 grid gap-3 md:grid-cols-[1fr_12rem_auto]">
-            <div className="relative">
-              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-black/30">⌕</span>
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search forms..." className="w-full rounded-xl border border-black/10 bg-white py-3 pl-10 pr-4 outline-none focus:border-[#8b5cf6]" />
+          <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1 max-w-md">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400">⌕</span>
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search forms..." className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-4 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-300 focus:outline-none focus:ring-4 focus:ring-zinc-100 transition-all" />
             </div>
-            <select value={folder} onChange={(e) => setFolder(e.target.value)} className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-[#8b5cf6]">
+            <select value={folder} onChange={(e) => setFolder(e.target.value)} className="w-full sm:w-auto rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-900 focus:border-zinc-300 focus:outline-none focus:ring-4 focus:ring-zinc-100 transition-all cursor-pointer">
               <option value="">All folders</option>
               {folders.map((item) => <option key={item}>{item}</option>)}
             </select>
-            <button onClick={() => void loadForms()} className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold transition hover:border-[#8b5cf6] hover:text-[#8b5cf6]">Search</button>
           </div>
 
-          {error && <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">{error}</div>}
+          {error && <div className="mb-8 rounded-xl border border-red-100 bg-red-50/50 px-4 py-3 text-sm text-red-600">{error}</div>}
 
           {!showArchived && (
-            <div className="mb-8 rounded-3xl border border-[#8b5cf6]/25 bg-gradient-to-br from-[#f3e6ff] to-[#e9d9ff] p-6">
-              <div className="flex flex-col gap-4">
+            <div className="mb-12 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+              <div className="flex flex-col gap-5">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                   <div>
-                    <h2 className="text-lg font-bold">Generate a form with AI</h2>
-                    <p className="mt-1 text-sm text-black/60">Describe your goal and we’ll draft a title, description, and starter questions.</p>
+                    <h2 className="text-base font-semibold text-zinc-900">Create with AI</h2>
+                    <p className="mt-1 text-sm text-zinc-500">Describe your goal and we'll draft the form structure.</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {templates.map((template) => (
-                      <button key={template.id} onClick={() => void createForm(template.title, template)} className="rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                      <button key={template.id} onClick={() => void createForm(template.title, template)} className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-900">
                         {template.title}
                       </button>
                     ))}
                   </div>
                 </div>
-                <div className="flex flex-col gap-3 md:flex-row">
-                  <textarea
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <input
                     value={aiPrompt}
                     onChange={(event) => setAiPrompt(event.target.value)}
-                    placeholder="Example: Collect product feedback from beta users about our onboarding flow"
-                    rows={2}
-                    className="min-h-[72px] flex-1 rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-[#8b5cf6]"
+                    placeholder="e.g., Collect product feedback from beta users..."
+                    className="flex-1 rounded-xl border border-zinc-200 bg-zinc-50/50 px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-zinc-100 transition-all"
                   />
                   <button
                     onClick={() => void generateFormWithAi()}
                     disabled={aiGenerating}
-                    className="rounded-2xl bg-[#1c1620] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8b5cf6] disabled:cursor-wait disabled:opacity-60"
+                    className="whitespace-nowrap rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-50"
                   >
-                    {aiGenerating ? "Generating…" : "Generate"}
+                    {aiGenerating ? "Generating…" : "Generate Form"}
                   </button>
                 </div>
               </div>
@@ -250,104 +238,101 @@ export default function FormsPage() {
           )}
 
           {loading ? (
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              <div className="h-64 animate-pulse rounded-3xl bg-white" />
-              <div className="h-64 animate-pulse rounded-3xl bg-white" />
-              <div className="h-64 animate-pulse rounded-3xl bg-white" />
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="h-56 animate-pulse rounded-2xl bg-zinc-100/50" />
+              ))}
             </div>
           ) : forms.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-black/15 bg-white px-6 py-20 text-center">
-              <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-[#f3e6ff] text-2xl text-[#8b5cf6]">＋</div>
-              <h2 className="text-xl font-semibold">{showArchived ? "Your archive is empty" : "Start with your first form"}</h2>
-              <p className="mx-auto mt-2 max-w-sm text-sm text-black/50">
-                {showArchived ? "Forms you archive will show up here." : "Build a beautiful, focused flow for feedback, signups, or anything you want to ask."}
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-transparent px-6 py-24 text-center">
+              <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-zinc-100 text-zinc-400">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" /></svg>
+              </div>
+              <h2 className="text-base font-semibold text-zinc-900">{showArchived ? "Archive is empty" : "No forms yet"}</h2>
+              <p className="mt-1.5 max-w-sm text-sm text-zinc-500">
+                {showArchived ? "Archived forms will appear here." : "Create your first form to start collecting responses."}
               </p>
-              {!showArchived && <button onClick={() => void createForm()} className="mt-6 rounded-full bg-[#1c1620] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8b5cf6]">Create a form</button>}
+              {!showArchived && <button onClick={() => void createForm()} className="mt-6 rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-zinc-800">Create new form</button>}
             </div>
           ) : (
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {forms.map((form, i) => (
-                <article key={form.id} className="group relative rounded-3xl border border-black/5 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
-                  <Link href={`/forms/${form.id}/edit`} className="block">
-                    <div className={`flex h-24 items-start justify-between rounded-t-3xl bg-gradient-to-br p-4 ${thumbnailAccents[i % thumbnailAccents.length]}`}>
-                      <span className={`rounded-full bg-white/80 px-3 py-1 text-xs font-semibold backdrop-blur ${form.status === "published" ? "text-emerald-700" : "text-black/60"}`}>
-                        {form.status}
-                      </span>
-                    </div>
-                  </Link>
-
-                  <div className="p-6">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {forms.map((form) => (
+                <article key={form.id} className="group relative flex flex-col justify-between rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition-all hover:border-zinc-300 hover:shadow-md">
+                  <div>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => void updateForm(form.id, { is_favorite: !form.is_favorite }, form.is_favorite ? "Removed from favorites" : "Added to favorites")}
                             aria-label="Favorite form"
-                            className="text-lg text-[#8b5cf6]"
+                            className={`text-lg transition ${form.is_favorite ? "text-amber-400" : "text-zinc-300 hover:text-amber-400"}`}
                           >
                             {form.is_favorite ? "★" : "☆"}
                           </button>
-                          <Link href={`/forms/${form.id}/edit`} className="truncate text-lg font-semibold tracking-tight hover:text-[#8b5cf6]">{form.title}</Link>
+                          <Link href={`/forms/${form.id}/edit`} className="truncate text-base font-medium text-zinc-900 hover:underline">{form.title}</Link>
                         </div>
-                        <p className="mt-1 text-xs text-black/40">Updated {formatDate(form.updated_at)}</p>
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {(form.tags ?? []).map((tag) => (
-                            <span key={tag} className="rounded-full bg-[#f3e6ff] px-2 py-1 text-xs text-[#8b5cf6]">{tag}</span>
-                          ))}
-                          {form.folder && <span className="rounded-full bg-black/5 px-2 py-1 text-xs text-black/50">{form.folder}</span>}
-                        </div>
+                        <p className="mt-1 pl-7 text-xs text-zinc-500">Updated {formatDate(form.updated_at)}</p>
                       </div>
 
-                      {/* Overflow menu */}
                       <div className="relative shrink-0">
                         <button
                           onClick={() => setOpenMenuId(openMenuId === form.id ? null : form.id)}
                           aria-label={`More actions for ${form.title}`}
-                          className="grid h-8 w-8 place-items-center rounded-lg text-black/40 hover:bg-black/5 hover:text-black"
+                          className="grid h-8 w-8 place-items-center rounded-md text-zinc-400 transition hover:bg-zinc-50 hover:text-zinc-900"
                         >
                           ⋯
                         </button>
                         {openMenuId === form.id && (
                           <>
                             <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                            <div className="absolute right-0 top-9 z-20 w-48 overflow-hidden rounded-2xl border border-black/10 bg-white py-1.5 shadow-xl">
-                              <Link href={`/forms/${form.id}/edit`} className="block px-4 py-2.5 text-sm font-medium hover:bg-[#f7f6fa]">Edit</Link>
-                              <Link href={`/forms/${form.id}/results`} className="block px-4 py-2.5 text-sm font-medium hover:bg-[#f7f6fa]">Results</Link>
-                              <button onClick={() => void showActivity(form)} className="block w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-[#f7f6fa]">History</button>
-                              <button onClick={() => void action(form.id, "duplicate")} className="block w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-[#f7f6fa]">Duplicate</button>
-                              <button onClick={() => void action(form.id, showArchived ? "restore" : "archive")} className="block w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-[#f7f6fa]">
+                            <div className="absolute right-0 top-9 z-20 w-40 overflow-hidden rounded-xl border border-zinc-200 bg-white py-1 shadow-lg">
+                              <Link href={`/forms/${form.id}/edit`} className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50">Edit</Link>
+                              <Link href={`/forms/${form.id}/results`} className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50">Results</Link>
+                              <button onClick={() => void showActivity(form)} className="block w-full px-4 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-50">History</button>
+                              <button onClick={() => void action(form.id, "duplicate")} className="block w-full px-4 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-50">Duplicate</button>
+                              <div className="my-1 h-px bg-zinc-100" />
+                              <button onClick={() => void action(form.id, showArchived ? "restore" : "archive")} className="block w-full px-4 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-50">
                                 {showArchived ? "Restore" : "Archive"}
                               </button>
-                              <button onClick={() => { setOpenMenuId(null); setDeleteTarget(form); }} className="block w-full px-4 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50">Delete</button>
+                              <button onClick={() => { setOpenMenuId(null); setDeleteTarget(form); }} className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50">Delete</button>
                             </div>
                           </>
                         )}
                       </div>
                     </div>
 
-                    <div className="mt-6 flex items-end justify-between">
-                      <div>
-                        <p className="text-3xl font-bold">{form.response_count}</p>
-                        <p className="mt-1 text-xs font-medium uppercase tracking-wider text-black/40">Responses</p>
+                    <div className="mt-4 pl-7">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium tracking-wide ${form.status === "published" ? "bg-emerald-50 text-emerald-700 border border-emerald-200/50" : "bg-zinc-100 text-zinc-600 border border-zinc-200/50"}`}>
+                          {form.status.toUpperCase()}
+                        </span>
                       </div>
-                      {busyId === form.id && <span className="text-xs font-medium text-black/40">Working…</span>}
-                    </div>
-
-                    <div className="mt-4 flex gap-2">
-                      <input
-                        defaultValue={(form.tags ?? []).join(", ")}
-                        onBlur={(e) => void updateForm(form.id, { tags: e.target.value.split(",").map((tag) => tag.trim()).filter(Boolean) }, "Tags saved")}
-                        placeholder="Tags: feedback, ux"
-                        className="min-w-0 flex-1 rounded-lg border border-black/10 px-3 py-2 text-xs outline-none focus:border-[#8b5cf6]"
-                      />
-                      <input
-                        defaultValue={form.folder ?? ""}
-                        onBlur={(e) => void updateForm(form.id, { folder: e.target.value.trim() || null }, "Folder saved")}
-                        placeholder="Folder"
-                        className="w-28 rounded-lg border border-black/10 px-3 py-2 text-xs outline-none focus:border-[#8b5cf6]"
-                      />
+                      <div className="mt-4">
+                        <span className="text-2xl font-semibold tracking-tight text-zinc-900">{form.response_count}</span>
+                        <span className="ml-1.5 text-xs text-zinc-500">Responses</span>
+                      </div>
                     </div>
                   </div>
+
+                  <div className="mt-6 flex flex-wrap gap-1.5 pl-7 border-t border-zinc-100 pt-4">
+                    <input
+                      defaultValue={(form.tags ?? []).join(", ")}
+                      onBlur={(e) => void updateForm(form.id, { tags: e.target.value.split(",").map((tag) => tag.trim()).filter(Boolean) }, "Tags saved")}
+                      placeholder="+ add tags"
+                      className="min-w-[80px] flex-1 bg-transparent px-1 py-0.5 text-xs text-zinc-600 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-200 rounded"
+                    />
+                    <input
+                      defaultValue={form.folder ?? ""}
+                      onBlur={(e) => void updateForm(form.id, { folder: e.target.value.trim() || null }, "Folder saved")}
+                      placeholder="+ folder"
+                      className="w-20 bg-transparent px-1 py-0.5 text-xs text-zinc-600 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-200 rounded"
+                    />
+                  </div>
+                  {busyId === form.id && (
+                    <div className="absolute inset-0 z-10 rounded-2xl bg-white/50 backdrop-blur-[1px] flex items-center justify-center">
+                      <span className="text-xs font-medium text-zinc-600">Working…</span>
+                    </div>
+                  )}
                 </article>
               ))}
             </div>
@@ -355,39 +340,45 @@ export default function FormsPage() {
         </section>
       </div>
 
+      {/* Minimal Activity Modal */}
       {activity && (
-        <div role="dialog" aria-modal="true" className="fixed inset-0 z-40 flex items-center justify-center bg-[#1c1620]/50 px-5" onClick={() => setActivity(null)}>
-          <div className="w-full max-w-lg rounded-3xl bg-white p-7 shadow-2xl" onClick={(event) => event.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Activity history</h2>
-              <button onClick={() => setActivity(null)} className="text-2xl text-black/40">×</button>
+        <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/20 px-4 backdrop-blur-sm transition-opacity" onClick={() => setActivity(null)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-zinc-900">Activity History</h2>
+              <button onClick={() => setActivity(null)} className="text-zinc-400 hover:text-zinc-900 transition-colors">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
             </div>
-            <p className="mt-1 text-sm text-black/50">{activity.form.title}</p>
-            <div className="mt-6 max-h-80 space-y-3 overflow-y-auto">
+            <p className="text-sm text-zinc-500 mb-6">{activity.form.title}</p>
+            <div className="max-h-[300px] space-y-4 overflow-y-auto pr-2">
               {activity.items.length ? (
                 activity.items.map((item) => (
-                  <div key={item.id} className="rounded-xl bg-[#f7f6fa] p-3">
-                    <p className="text-sm font-semibold capitalize">{item.action}</p>
-                    <p className="mt-1 text-xs text-black/50">{item.details || "Form activity"} · {item.created_at ? formatDate(item.created_at) : "Recently"}</p>
+                  <div key={item.id} className="relative pl-4 border-l border-zinc-200">
+                    <div className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-zinc-200" />
+                    <p className="text-sm font-medium text-zinc-900 capitalize">{item.action}</p>
+                    <p className="mt-0.5 text-xs text-zinc-500">{item.details || "System action"} · {item.created_at ? formatDate(item.created_at) : "Recently"}</p>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-black/50">No activity recorded yet.</p>
+                <p className="text-sm text-zinc-500 italic">No activity recorded yet.</p>
               )}
             </div>
           </div>
         </div>
       )}
 
+      {/* Minimal Delete Modal */}
       {deleteTarget && (
-        <div role="dialog" aria-modal="true" className="fixed inset-0 z-40 flex items-center justify-center bg-[#1c1620]/50 px-5" onClick={() => setDeleteTarget(null)}>
-          <div className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl" onClick={(event) => event.stopPropagation()}>
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-red-50 text-xl text-red-600">!</div>
-            <h2 className="mt-5 text-xl font-bold">Delete {deleteTarget.title}?</h2>
-            <p className="mt-2 text-sm leading-6 text-black/50">This removes the form and its responses permanently.</p>
-            <div className="mt-7 flex justify-end gap-3">
-              <button onClick={() => setDeleteTarget(null)} className="rounded-xl border border-black/10 px-4 py-2.5 text-sm font-semibold">Cancel</button>
-              <button onClick={() => void confirmDelete()} className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Delete form</button>
+        <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/20 px-4 backdrop-blur-sm transition-opacity" onClick={() => setDeleteTarget(null)}>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-semibold text-zinc-900">Delete form?</h2>
+            <p className="mt-2 text-sm text-zinc-500">
+              Are you sure you want to delete <span className="font-medium text-zinc-900">{deleteTarget.title}</span>? This action cannot be undone and will erase all responses.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button onClick={() => setDeleteTarget(null)} className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors">Cancel</button>
+              <button onClick={() => void confirmDelete()} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">Delete</button>
             </div>
           </div>
         </div>
