@@ -3,7 +3,21 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { DndContext, DragEndEvent, DragOverlay, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
+import localFont from "next/font/local";
 import { api, API_URL } from "@/lib/api";
+
+const typeformFont = localFont({
+  src: "../../../../../public/font/typeform.woff2",
+  variable: "--font-typeform",
+  weight: "700",
+  display: "swap",
+});
+const regFont = localFont({
+  src: "../../../../../public/font/reg.woff2",
+  variable: "--font-reg",
+  weight: "400",
+  display: "swap",
+});
 
 type QuestionType = "short_text" | "long_text" | "multiple_choice" | "dropdown" | "email" | "number" | "yes_no" | "rating";
 type Question = { id: number; form_id: number; type: QuestionType; title: string; description: string | null; required: boolean; order_index: number; options: string[] | null; settings: Record<string, unknown> | null };
@@ -27,10 +41,19 @@ function DraggableQuestion({ question, active }: { question: Question; active: b
   const { attributes, listeners, setNodeRef: setDragRef, transform } = useDraggable({ id: question.id });
   const { setNodeRef: setDropRef, isOver } = useDroppable({ id: question.id });
   const style = transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined;
-  return <div ref={(node) => { setDragRef(node); setDropRef(node); }} style={style} className={`mb-2 flex items-center gap-3 rounded-xl border p-3 transition ${active ? "border-[#635bff] bg-[#eeecff]" : isOver ? "border-[#635bff] bg-white" : "border-slate-200 bg-white"}`}>
-    <button {...listeners} {...attributes} aria-label={`Drag ${question.title}`} className="cursor-grab touch-none px-1 text-slate-400">::</button>
-    <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{question.title}</p><p className="mt-1 text-xs capitalize text-slate-400">{question.type.replaceAll("_", " ")}</p></div>
-  </div>;
+  return (
+    <div
+      ref={(node) => { setDragRef(node); setDropRef(node); }}
+      style={style}
+      className={`mb-2 flex items-center gap-3 rounded-xl border p-3 transition ${active ? "border-[#8b5cf6] bg-[#f3e6ff]" : isOver ? "border-[#8b5cf6] bg-white" : "border-black/10 bg-white"}`}
+    >
+      <button {...listeners} {...attributes} aria-label={`Drag ${question.title}`} className="cursor-grab touch-none px-1 text-black/30">::</button>
+      <div className="min-w-0 flex-1">
+        <p style={{ fontFamily: "var(--font-reg)" }} className="truncate text-sm font-medium">{question.title}</p>
+        <p style={{ fontFamily: "var(--font-reg)" }} className="mt-1 text-xs capitalize text-black/40">{question.type.replaceAll("_", " ")}</p>
+      </div>
+    </div>
+  );
 }
 
 export default function BuilderPage({ params }: { params: { id: string } }) {
@@ -88,24 +111,328 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
   async function publish() { setSaving(true); try { const updated = await api<Form>(`/api/forms/${formId}/${form?.status === "published" ? "unpublish" : "publish"}`, { method: "POST" }); setForm(updated); setNotice(updated.status === "published" ? "Published" : "Unpublished"); } catch (err) { setError(err instanceof Error ? err.message : "Could not update publish status"); } finally { setSaving(false); } }
   async function copyLink() { if (!form?.public_slug) return; await navigator.clipboard.writeText(`${window.location.origin}/f/${form.public_slug}`); setNotice("Link copied"); window.setTimeout(() => setNotice(""), 1500); }
 
-  if (loading) return <div className="grid min-h-screen place-items-center bg-[#f7f7fb] text-slate-500">Loading builder...</div>;
-  if (!form) return <div className="grid min-h-screen place-items-center bg-[#f7f7fb] text-red-600">{error || "Form not found"}</div>;
-  return <main className="min-h-screen bg-[#f7f7fb] text-slate-950">
-    <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-5">
-      <div className="flex items-center gap-5"><Link href="/forms" className="grid h-9 w-9 place-items-center rounded-xl bg-[#635bff] font-bold text-white">t.</Link><div className="h-6 w-px bg-slate-200" /><input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} onBlur={() => void updateForm({ title: form.title })} className="w-64 rounded-lg border border-transparent bg-white px-2 py-1 text-sm font-semibold text-slate-950 outline-none hover:border-slate-200 focus:border-[#635bff]" /></div>
-      <div className="flex items-center gap-3"><Link href={`/forms/${formId}/results`} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Results</Link><Link href={`/f/preview?formId=${formId}`} target="_blank" className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium hover:border-[#635bff] hover:text-[#635bff]">Preview</Link><button onClick={() => void publish()} disabled={saving || form.questions.length === 0} className="rounded-lg bg-[#635bff] px-4 py-2 text-sm font-semibold text-white hover:bg-[#5148e8] disabled:opacity-50">{form.status === "published" ? "Unpublish" : "Publish"}</button></div>
-    </header>
-    {notice && <div className="fixed right-6 top-20 z-20 rounded-xl bg-slate-950 px-4 py-3 text-sm font-medium text-white shadow-lg">{notice}</div>}
-    {error && <div className="mx-auto mt-4 max-w-7xl rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
-    <div className="mx-auto grid max-w-7xl grid-cols-[280px_minmax(0,1fr)_360px] gap-5 px-5 py-5">
-      <aside className="rounded-2xl border border-slate-200 bg-white p-4"><div className="mb-4 flex items-center justify-between"><h2 className="text-sm font-semibold">Questions</h2><span className="text-xs text-slate-400">{form.questions.length}</span></div><DndContext sensors={sensors} onDragStart={(e) => setActiveId(Number(e.active.id))} onDragCancel={() => setActiveId(null)} onDragEnd={(e) => void reorder(e)}>{form.questions.map((question) => <div key={question.id} onClick={() => setSelectedId(question.id)} className="block w-full cursor-pointer text-left"><DraggableQuestion question={question} active={selectedId === question.id} /></div>)}<DragOverlay>{activeId ? <div className="rounded-xl bg-white p-3 text-sm shadow-xl">{form.questions.find((q) => q.id === activeId)?.title}</div> : null}</DragOverlay></DndContext><div className="relative mt-4"><button onClick={() => setPickerOpen(!pickerOpen)} className="w-full rounded-xl border border-dashed border-[#635bff] px-4 py-3 text-sm font-semibold text-[#635bff] hover:bg-[#eeecff]">+ Add question</button>{pickerOpen && <div className="absolute left-0 right-0 top-14 z-10 grid max-h-[min(24rem,calc(100vh-10rem))] grid-cols-2 gap-1 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">{questionTypes.map((item) => <button key={item.type} onClick={() => void addQuestion(item.type)} className="flex min-w-0 items-center gap-2 rounded-xl p-2 text-left text-xs hover:bg-[#eeecff]"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-slate-100 font-semibold text-[#635bff]">{item.icon}</span><span className="truncate">{item.label}</span></button>)}</div>}</div></aside>
-      <section className="min-h-[calc(100vh-7rem)] rounded-2xl border border-slate-200 bg-white p-10"><div className="mx-auto max-w-2xl"><p className="mb-10 text-xs font-semibold uppercase tracking-[0.18em] text-[#635bff]">Question {selected ? selected.order_index + 1 : 0}</p>{selected ? <><h1 className="text-3xl font-bold tracking-tight">{selected.title}</h1>{selected.description && <p className="mt-3 text-slate-500">{selected.description}</p>}{selected.settings?.section_title && <p className="mt-6 rounded-xl bg-[#eeecff] px-4 py-3 text-sm font-semibold text-[#635bff]">Section: {String(selected.settings.section_title)}</p>}<div className="mt-12 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-slate-400">{selected.settings?.input_type === "file_upload" ? <div className="rounded-xl border-2 border-dashed border-slate-300 p-10 text-center">Upload a file</div> : selected.type === "multiple_choice" || selected.type === "dropdown" ? <div className="space-y-3">{(selected.options ?? []).map((option, index) => <div key={`${option}-${index}`} className="rounded-xl border border-slate-200 bg-white px-4 py-3">{option}</div>)}</div> : selected.type === "rating" ? <div className="flex gap-3 text-2xl">{Array.from({ length: Number(selected.settings?.max ?? 5) }, (_, index) => <span key={index}>*</span>)}</div> : selected.type === "yes_no" ? <div className="flex gap-3"><span className="rounded-xl border border-slate-200 bg-white px-6 py-3">Yes</span><span className="rounded-xl border border-slate-200 bg-white px-6 py-3">No</span></div> : <div className="border-b border-slate-300 pb-3">{String(selected.settings?.placeholder ?? "Type your answer here...")}</div>}</div></> : <div className="py-24 text-center text-slate-400">Select a question to edit</div>}</div></section>
-      <aside className="rounded-2xl border border-slate-200 bg-white p-5"><h2 className="text-sm font-semibold">Edit question</h2>{selected ? <div className="mt-6 space-y-5"><label className="block text-sm font-medium">Question title<input value={selected.title} onChange={(e) => replaceQuestion(selected.id, { title: e.target.value })} onBlur={() => void saveQuestion({ title: selected.title })} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-950 outline-none focus:border-[#635bff]" /></label><label className="block text-sm font-medium">Help text<span className="mt-2 block text-xs font-normal text-slate-400">Optional description</span><textarea value={selected.description ?? ""} onChange={(e) => replaceQuestion(selected.id, { description: e.target.value })} rows={3} className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-950 outline-none focus:border-[#635bff]" /></label><label className="block text-sm font-medium">Placeholder<input value={String(selected.settings?.placeholder ?? "")} onChange={(e) => replaceQuestion(selected.id, { settings: { ...(selected.settings ?? {}), placeholder: e.target.value } })} onBlur={() => void saveQuestion({ settings: selected.settings })} placeholder="Type your answer here..." className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950" /></label><label className="flex items-center justify-between rounded-xl bg-slate-50 p-3 text-sm font-medium">Required<input type="checkbox" checked={selected.required} onChange={(e) => { replaceQuestion(selected.id, { required: e.target.checked }); void saveQuestion({ required: e.target.checked }); }} className="h-4 w-4 accent-[#635bff]" /></label><label className="flex items-center justify-between rounded-xl bg-slate-50 p-3 text-sm font-medium">Page break before<input type="checkbox" checked={Boolean(selected.settings?.page_break_before)} onChange={(e) => { const settings = { ...(selected.settings ?? {}), page_break_before: e.target.checked }; replaceQuestion(selected.id, { settings }); void saveQuestion({ settings }); }} className="h-4 w-4 accent-[#635bff]" /></label>{(selected.type === "multiple_choice" || selected.type === "dropdown") && <div><p className="mb-2 text-sm font-medium">Options</p><div className="space-y-2">{(selected.options ?? []).map((option, index) => <div key={index} className="flex gap-2"><input value={option} onChange={(e) => { const options = [...(selected.options ?? [])]; options[index] = e.target.value; replaceQuestion(selected.id, { options }); }} onBlur={() => void saveQuestion({ options: selected.options })} className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950" /><button onClick={() => { const options = (selected.options ?? []).filter((_, optionIndex) => optionIndex !== index); replaceQuestion(selected.id, { options }); void saveQuestion({ options }); }} className="px-2 text-slate-400 hover:text-red-600">x</button></div>)}</div><button onClick={() => { const options = [...(selected.options ?? []), `Option ${(selected.options?.length ?? 0) + 1}`]; replaceQuestion(selected.id, { options }); void saveQuestion({ options }); }} className="mt-2 text-sm font-semibold text-[#635bff]">+ Add option</button></div>}{(selected.type === "number" || selected.type === "rating") && <div className="grid grid-cols-2 gap-3"><label className="text-sm font-medium">Min<input type="number" value={Number(selected.settings?.min ?? 0)} onChange={(e) => { const settings = { ...(selected.settings ?? {}), min: Number(e.target.value) }; replaceQuestion(selected.id, { settings }); }} onBlur={() => void saveQuestion({ settings: selected.settings })} className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-950" /></label><label className="text-sm font-medium">Max<input type="number" value={Number(selected.settings?.max ?? 5)} onChange={(e) => { const settings = { ...(selected.settings ?? {}), max: Number(e.target.value) }; replaceQuestion(selected.id, { settings }); }} onBlur={() => void saveQuestion({ settings: selected.settings })} className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-950" /></label></div>}<div className="flex gap-2"><button onClick={() => void duplicateSelected()} className="flex-1 rounded-xl border border-[#635bff] px-3 py-2.5 text-sm font-semibold text-[#635bff] hover:bg-[#eeecff]">Duplicate</button><button onClick={() => setDeleteQuestion(true)} className="flex-1 rounded-xl border border-red-200 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">Delete</button></div></div> : <p className="mt-5 text-sm text-slate-400">Choose a question from the left to edit it.</p>}<div className="mt-10 border-t border-slate-200 pt-6"><h2 className="text-sm font-semibold">Form settings</h2><label className="mt-4 block text-sm font-medium">Accent color<input type="color" value={form.theme?.color ?? "#635bff"} onChange={(e) => void updateForm({ theme: { ...(form.theme ?? {}), color: e.target.value } })} className="mt-2 h-10 w-full cursor-pointer rounded-lg border border-slate-200 bg-white p-1" /></label><label className="mt-4 block text-sm font-medium">Background color<input type="color" value={form.theme?.background ?? "#f8f7ff"} onChange={(e) => void updateForm({ theme: { ...(form.theme ?? {}), background: e.target.value } })} className="mt-2 h-10 w-full cursor-pointer rounded-lg border border-slate-200 bg-white p-1" /></label><label className="mt-4 block text-sm font-medium">Welcome screen<textarea value={form.welcome_message} onChange={(e) => setForm({ ...form, welcome_message: e.target.value })} onBlur={() => void updateForm({ welcome_message: form.welcome_message })} rows={2} className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950" /></label><label className="mt-4 block text-sm font-medium">Thank-you message<textarea value={form.thank_you_message} onChange={(e) => setForm({ ...form, thank_you_message: e.target.value })} onBlur={() => void updateForm({ thank_you_message: form.thank_you_message })} rows={2} className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950" /></label>{form.status === "published" && form.public_slug && <div className="mt-5 rounded-xl bg-[#eeecff] p-3"><p className="text-xs font-semibold uppercase tracking-wider text-[#635bff]">Share link</p><p className="mt-2 break-all text-xs text-slate-600">{window.location.origin}/f/{form.public_slug}</p><button onClick={() => void copyLink()} className="mt-3 text-sm font-semibold text-[#635bff]">Copy link</button></div>}</div></aside>
-    </div>
-    {deleteQuestion && selected && <div role="dialog" aria-modal="true" className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/40 px-5" onClick={() => setDeleteQuestion(false)}><div className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl" onClick={(event) => event.stopPropagation()}><h2 className="text-xl font-bold">Delete this question?</h2><p className="mt-2 text-sm leading-6 text-slate-500">The question and its saved answers will be removed.</p><div className="mt-7 flex justify-end gap-3"><button onClick={() => setDeleteQuestion(false)} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold">Cancel</button><button onClick={() => void deleteSelected()} className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white">Delete question</button></div></div></div>}
-    {selected && <section className="mx-auto mb-6 max-w-7xl px-5"><div className="rounded-2xl border border-slate-200 bg-white p-5"><h2 className="text-sm font-semibold">Logic for: {selected.title}</h2><p className="mt-1 text-xs text-slate-500">Show this question only when a previous answer matches a rule.</p>{form.questions.some((question) => question.order_index < selected.order_index) ? <div className="mt-4 grid gap-3 md:grid-cols-3"><select value={String((selected.settings?.logic as LogicRule | undefined)?.question_id ?? "")} onChange={(event) => { const source = form.questions.find((question) => question.id === Number(event.target.value)); const current = selected.settings?.logic as LogicRule | undefined; void updateLogic(source ? { question_id: source.id, operator: current?.operator ?? "is", value: current?.value ?? source.options?.[0] ?? "" } : null); }} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"><option value="">Always show</option>{form.questions.filter((question) => question.order_index < selected.order_index).map((question) => <option key={question.id} value={question.id}>{question.order_index + 1}. {question.title}</option>)}</select>{(selected.settings?.logic as LogicRule | undefined)?.question_id && <><select value={(selected.settings?.logic as LogicRule).operator} onChange={(event) => { const current = selected.settings?.logic as LogicRule; void updateLogic({ ...current, operator: event.target.value as LogicRule["operator"] }); }} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"><option value="is">is</option><option value="is_not">is not</option></select>{(() => { const rule = selected.settings?.logic as LogicRule; const source = form.questions.find((question) => question.id === rule.question_id); const options = source?.options ?? []; return options.length ? <select value={rule.value} onChange={(event) => void updateLogic({ ...rule, value: event.target.value })} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">{options.map((option) => <option key={option}>{option}</option>)}</select> : <input value={rule.value} onChange={(event) => replaceQuestion(selected.id, { settings: { ...(selected.settings ?? {}), logic: { ...rule, value: event.target.value } } })} onBlur={() => void saveQuestion({ settings: selected.settings })} placeholder="Expected answer" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" />; })()}</>}</div> : <p className="mt-3 text-xs text-slate-500">Add a question before this one to create a rule.</p>}</div></section>}
-    <section className="mx-auto mb-6 grid max-w-7xl gap-4 px-5 md:grid-cols-2 lg:grid-cols-4">
-      {[["Logic jumps", "Basic conditional visibility is supported. Advanced branching rules are coming soon."], ["Integrations & webhooks", "Connectors, webhook delivery, and automation setup are coming soon."], ["Team collaboration", "Shared workspaces, roles, comments, and invite links are coming soon."], ["Payments & uploads", "Payment processing and permanent file storage are coming soon."]].map(([title, copy]) => <div key={title} className="rounded-2xl border border-dashed border-slate-300 bg-white p-4"><p className="text-sm font-semibold">{title}</p><span className="mt-2 inline-flex rounded-full bg-[#eeecff] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#635bff]">Coming soon</span><p className="mt-3 text-xs leading-5 text-slate-500">{copy}</p></div>)}
-    </section>
-  </main>;
+  if (loading) return <div style={{ fontFamily: "var(--font-reg)" }} className={`grid min-h-screen place-items-center bg-[#f7f6fa] text-black/50 ${regFont.variable}`}>Loading builder...</div>;
+  if (!form) return <div style={{ fontFamily: "var(--font-reg)" }} className={`grid min-h-screen place-items-center bg-[#f7f6fa] text-red-600 ${regFont.variable}`}>{error || "Form not found"}</div>;
+
+  return (
+    <main style={{ fontFamily: "var(--font-reg)" }} className={`min-h-screen bg-[#f7f6fa] text-[#171719] ${typeformFont.variable} ${regFont.variable}`}>
+      <header className="flex h-16 items-center justify-between border-b border-black/10 bg-white px-5">
+        <div className="flex items-center gap-5">
+          <Link href="/forms" style={{ fontFamily: "var(--font-reg)" }} className="grid h-9 w-9 place-items-center rounded-xl bg-[#1c1620] font-bold text-white">t.</Link>
+          <div className="h-6 w-px bg-black/10" />
+          <input
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            onBlur={() => void updateForm({ title: form.title })}
+            style={{ fontFamily: "var(--font-reg)" }}
+            className="w-64 rounded-lg border border-transparent bg-white px-2 py-1 text-sm font-bold text-[#171719] outline-none hover:border-black/10 focus:border-[#8b5cf6]"
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <Link href={`/forms/${formId}/results`} className="rounded-full px-3 py-2 text-sm font-medium text-black/60 hover:bg-black/5">Results</Link>
+          <Link href={`/f/preview?formId=${formId}`} target="_blank" className="rounded-full border border-black/10 px-4 py-2 text-sm font-medium hover:border-[#8b5cf6] hover:text-[#8b5cf6]">Preview</Link>
+          <button onClick={() => void publish()} disabled={saving || form.questions.length === 0} className="rounded-full bg-[#1c1620] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8b5cf6] disabled:opacity-50">
+            {form.status === "published" ? "Unpublish" : "Publish"}
+          </button>
+        </div>
+      </header>
+
+      {notice && <div className="fixed right-6 top-20 z-20 rounded-xl bg-[#1c1620] px-4 py-3 text-sm font-medium text-white shadow-lg">{notice}</div>}
+      {error && <div className="mx-auto mt-4 max-w-7xl rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+
+      <div className="mx-auto grid max-w-7xl grid-cols-[280px_minmax(0,1fr)_360px] gap-5 px-5 py-5">
+        {/* Question list */}
+        <aside className="rounded-2xl border border-black/10 bg-white p-4">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 style={{ fontFamily: "var(--font-reg)" }} className="text-sm font-bold">Questions</h2>
+            <span className="text-xs text-black/40">{form.questions.length}</span>
+          </div>
+          <DndContext sensors={sensors} onDragStart={(e) => setActiveId(Number(e.active.id))} onDragCancel={() => setActiveId(null)} onDragEnd={(e) => void reorder(e)}>
+            {form.questions.map((question) => (
+              <div key={question.id} onClick={() => setSelectedId(question.id)} className="block w-full cursor-pointer text-left">
+                <DraggableQuestion question={question} active={selectedId === question.id} />
+              </div>
+            ))}
+            <DragOverlay>{activeId ? <div className="rounded-xl bg-white p-3 text-sm shadow-xl">{form.questions.find((q) => q.id === activeId)?.title}</div> : null}</DragOverlay>
+          </DndContext>
+          <div className="relative mt-4">
+            <button onClick={() => setPickerOpen(!pickerOpen)} className="w-full rounded-xl border border-dashed border-[#8b5cf6] px-4 py-3 text-sm font-semibold text-[#8b5cf6] hover:bg-[#f3e6ff]">+ Add question</button>
+            {pickerOpen && (
+              <div className="absolute left-0 right-0 top-14 z-10 grid max-h-[min(24rem,calc(100vh-10rem))] grid-cols-2 gap-1 overflow-y-auto rounded-2xl border border-black/10 bg-white p-2 shadow-xl">
+                {questionTypes.map((item) => (
+                  <button key={item.type} onClick={() => void addQuestion(item.type)} className="flex min-w-0 items-center gap-2 rounded-xl p-2 text-left text-xs hover:bg-[#f3e6ff]">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#f7f6fa] font-semibold text-[#8b5cf6]">{item.icon}</span>
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* Live preview */}
+        <section className="min-h-[calc(100vh-7rem)] rounded-2xl border border-black/10 bg-white p-10">
+          <div className="mx-auto max-w-2xl">
+            <p className="mb-10 text-xs font-semibold uppercase tracking-[0.18em] text-[#8b5cf6]">Question {selected ? selected.order_index + 1 : 0}</p>
+            {selected ? (
+              <>
+                <h1 style={{ fontFamily: "var(--font-reg)" }} className="text-3xl font-bold tracking-tight">{selected.title}</h1>
+                {selected.description && <p className="mt-3 text-black/50">{selected.description}</p>}
+                {selected.settings?.section_title && (
+                  <p className="mt-6 rounded-xl bg-[#f3e6ff] px-4 py-3 text-sm font-semibold text-[#8b5cf6]">Section: {String(selected.settings.section_title)}</p>
+                )}
+                <div className="mt-12 rounded-2xl border border-black/10 bg-[#f7f6fa] p-5 text-black/40">
+                  {selected.settings?.input_type === "file_upload" ? (
+                    <div className="rounded-xl border-2 border-dashed border-black/15 p-10 text-center">Upload a file</div>
+                  ) : selected.type === "multiple_choice" || selected.type === "dropdown" ? (
+                    <div className="space-y-3">
+                      {(selected.options ?? []).map((option, index) => (
+                        <div key={`${option}-${index}`} className="rounded-xl border border-black/10 bg-white px-4 py-3">{option}</div>
+                      ))}
+                    </div>
+                  ) : selected.type === "rating" ? (
+                    <div className="flex gap-3 text-2xl text-[#8b5cf6]">
+                      {Array.from({ length: Number(selected.settings?.max ?? 5) }, (_, index) => <span key={index}>*</span>)}
+                    </div>
+                  ) : selected.type === "yes_no" ? (
+                    <div className="flex gap-3">
+                      <span className="rounded-xl border border-black/10 bg-white px-6 py-3">Yes</span>
+                      <span className="rounded-xl border border-black/10 bg-white px-6 py-3">No</span>
+                    </div>
+                  ) : (
+                    <div className="border-b border-black/15 pb-3">{String(selected.settings?.placeholder ?? "Type your answer here...")}</div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="py-24 text-center text-black/30">Select a question to edit</div>
+            )}
+          </div>
+        </section>
+
+        {/* Edit panel */}
+        <aside className="rounded-2xl border border-black/10 bg-white p-5">
+          <h2 style={{ fontFamily: "var(--font-reg)" }} className="text-sm font-bold">Edit question</h2>
+          {selected ? (
+            <div className="mt-6 space-y-5">
+              <label className="block text-sm font-medium">
+                Question title
+                <input
+                  value={selected.title}
+                  onChange={(e) => replaceQuestion(selected.id, { title: e.target.value })}
+                  onBlur={() => void saveQuestion({ title: selected.title })}
+                  className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-[#171719] outline-none focus:border-[#8b5cf6]"
+                />
+              </label>
+              <label className="block text-sm font-medium">
+                Help text
+                <span className="mt-2 block text-xs font-normal text-black/40">Optional description</span>
+                <textarea
+                  value={selected.description ?? ""}
+                  onChange={(e) => replaceQuestion(selected.id, { description: e.target.value })}
+                  rows={3}
+                  className="mt-2 w-full resize-none rounded-xl border border-black/10 bg-white px-3 py-2.5 text-[#171719] outline-none focus:border-[#8b5cf6]"
+                />
+              </label>
+              <label className="block text-sm font-medium">
+                Placeholder
+                <input
+                  value={String(selected.settings?.placeholder ?? "")}
+                  onChange={(e) => replaceQuestion(selected.id, { settings: { ...(selected.settings ?? {}), placeholder: e.target.value } })}
+                  onBlur={() => void saveQuestion({ settings: selected.settings })}
+                  placeholder="Type your answer here..."
+                  className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#171719] outline-none focus:border-[#8b5cf6]"
+                />
+              </label>
+              <label className="flex items-center justify-between rounded-xl bg-[#f7f6fa] p-3 text-sm font-medium">
+                Required
+                <input type="checkbox" checked={selected.required} onChange={(e) => { replaceQuestion(selected.id, { required: e.target.checked }); void saveQuestion({ required: e.target.checked }); }} className="h-4 w-4 accent-[#8b5cf6]" />
+              </label>
+              <label className="flex items-center justify-between rounded-xl bg-[#f7f6fa] p-3 text-sm font-medium">
+                Page break before
+                <input
+                  type="checkbox"
+                  checked={Boolean(selected.settings?.page_break_before)}
+                  onChange={(e) => { const settings = { ...(selected.settings ?? {}), page_break_before: e.target.checked }; replaceQuestion(selected.id, { settings }); void saveQuestion({ settings }); }}
+                  className="h-4 w-4 accent-[#8b5cf6]"
+                />
+              </label>
+
+              {(selected.type === "multiple_choice" || selected.type === "dropdown") && (
+                <div>
+                  <p className="mb-2 text-sm font-medium">Options</p>
+                  <div className="space-y-2">
+                    {(selected.options ?? []).map((option, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          value={option}
+                          onChange={(e) => { const options = [...(selected.options ?? [])]; options[index] = e.target.value; replaceQuestion(selected.id, { options }); }}
+                          onBlur={() => void saveQuestion({ options: selected.options })}
+                          className="min-w-0 flex-1 rounded-lg border border-black/10 bg-white px-3 py-2 text-sm text-[#171719]"
+                        />
+                        <button
+                          onClick={() => { const options = (selected.options ?? []).filter((_, optionIndex) => optionIndex !== index); replaceQuestion(selected.id, { options }); void saveQuestion({ options }); }}
+                          className="px-2 text-black/30 hover:text-red-600"
+                        >
+                          x
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => { const options = [...(selected.options ?? []), `Option ${(selected.options?.length ?? 0) + 1}`]; replaceQuestion(selected.id, { options }); void saveQuestion({ options }); }}
+                    className="mt-2 text-sm font-semibold text-[#8b5cf6]"
+                  >
+                    + Add option
+                  </button>
+                </div>
+              )}
+
+              {(selected.type === "number" || selected.type === "rating") && (
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="text-sm font-medium">
+                    Min
+                    <input
+                      type="number"
+                      value={Number(selected.settings?.min ?? 0)}
+                      onChange={(e) => { const settings = { ...(selected.settings ?? {}), min: Number(e.target.value) }; replaceQuestion(selected.id, { settings }); }}
+                      onBlur={() => void saveQuestion({ settings: selected.settings })}
+                      className="mt-2 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-[#171719]"
+                    />
+                  </label>
+                  <label className="text-sm font-medium">
+                    Max
+                    <input
+                      type="number"
+                      value={Number(selected.settings?.max ?? 5)}
+                      onChange={(e) => { const settings = { ...(selected.settings ?? {}), max: Number(e.target.value) }; replaceQuestion(selected.id, { settings }); }}
+                      onBlur={() => void saveQuestion({ settings: selected.settings })}
+                      className="mt-2 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-[#171719]"
+                    />
+                  </label>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button onClick={() => void duplicateSelected()} className="flex-1 rounded-xl border border-[#8b5cf6] px-3 py-2.5 text-sm font-semibold text-[#8b5cf6] hover:bg-[#f3e6ff]">Duplicate</button>
+                <button onClick={() => setDeleteQuestion(true)} className="flex-1 rounded-xl border border-red-200 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">Delete</button>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-5 text-sm text-black/40">Choose a question from the left to edit it.</p>
+          )}
+
+          <div className="mt-10 border-t border-black/10 pt-6">
+            <h2 style={{ fontFamily: "var(--font-reg)" }} className="text-sm font-bold">Form settings</h2>
+            <label className="mt-4 block text-sm font-medium">
+              Accent color
+              <input type="color" value={form.theme?.color ?? "#8b5cf6"} onChange={(e) => void updateForm({ theme: { ...(form.theme ?? {}), color: e.target.value } })} className="mt-2 h-10 w-full cursor-pointer rounded-lg border border-black/10 bg-white p-1" />
+            </label>
+            <label className="mt-4 block text-sm font-medium">
+              Background color
+              <input type="color" value={form.theme?.background ?? "#f7f6fa"} onChange={(e) => void updateForm({ theme: { ...(form.theme ?? {}), background: e.target.value } })} className="mt-2 h-10 w-full cursor-pointer rounded-lg border border-black/10 bg-white p-1" />
+            </label>
+            <label className="mt-4 block text-sm font-medium">
+              Welcome screen
+              <textarea value={form.welcome_message} onChange={(e) => setForm({ ...form, welcome_message: e.target.value })} onBlur={() => void updateForm({ welcome_message: form.welcome_message })} rows={2} className="mt-2 w-full resize-none rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#171719]" />
+            </label>
+            <label className="mt-4 block text-sm font-medium">
+              Thank-you message
+              <textarea value={form.thank_you_message} onChange={(e) => setForm({ ...form, thank_you_message: e.target.value })} onBlur={() => void updateForm({ thank_you_message: form.thank_you_message })} rows={2} className="mt-2 w-full resize-none rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#171719]" />
+            </label>
+            {form.status === "published" && form.public_slug && (
+              <div className="mt-5 rounded-xl bg-[#f3e6ff] p-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#8b5cf6]">Share link</p>
+                <p className="mt-2 break-all text-xs text-black/60">{window.location.origin}/f/{form.public_slug}</p>
+                <button onClick={() => void copyLink()} className="mt-3 text-sm font-semibold text-[#8b5cf6]">Copy link</button>
+              </div>
+            )}
+          </div>
+        </aside>
+      </div>
+
+      {deleteQuestion && selected && (
+        <div role="dialog" aria-modal="true" className="fixed inset-0 z-40 flex items-center justify-center bg-[#1c1620]/50 px-5" onClick={() => setDeleteQuestion(false)}>
+          <div className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <h2 style={{ fontFamily: "var(--font-reg)" }} className="text-xl font-bold">Delete this question?</h2>
+            <p className="mt-2 text-sm leading-6 text-black/50">The question and its saved answers will be removed.</p>
+            <div className="mt-7 flex justify-end gap-3">
+              <button onClick={() => setDeleteQuestion(false)} className="rounded-xl border border-black/10 px-4 py-2.5 text-sm font-semibold">Cancel</button>
+              <button onClick={() => void deleteSelected()} className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Delete question</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selected && (
+        <section className="mx-auto mb-6 max-w-7xl px-5">
+          <div className="rounded-2xl border border-black/10 bg-white p-5">
+            <h2 style={{ fontFamily: "var(--font-reg)" }} className="text-sm font-bold">Logic for: {selected.title}</h2>
+            <p className="mt-1 text-xs text-black/50">Show this question only when a previous answer matches a rule.</p>
+            {form.questions.some((question) => question.order_index < selected.order_index) ? (
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <select
+                  value={String((selected.settings?.logic as LogicRule | undefined)?.question_id ?? "")}
+                  onChange={(event) => { const source = form.questions.find((question) => question.id === Number(event.target.value)); const current = selected.settings?.logic as LogicRule | undefined; void updateLogic(source ? { question_id: source.id, operator: current?.operator ?? "is", value: current?.value ?? source.options?.[0] ?? "" } : null); }}
+                  className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm"
+                >
+                  <option value="">Always show</option>
+                  {form.questions.filter((question) => question.order_index < selected.order_index).map((question) => (
+                    <option key={question.id} value={question.id}>{question.order_index + 1}. {question.title}</option>
+                  ))}
+                </select>
+                {(selected.settings?.logic as LogicRule | undefined)?.question_id && (
+                  <>
+                    <select
+                      value={(selected.settings?.logic as LogicRule).operator}
+                      onChange={(event) => { const current = selected.settings?.logic as LogicRule; void updateLogic({ ...current, operator: event.target.value as LogicRule["operator"] }); }}
+                      className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm"
+                    >
+                      <option value="is">is</option>
+                      <option value="is_not">is not</option>
+                    </select>
+                    {(() => {
+                      const rule = selected.settings?.logic as LogicRule;
+                      const source = form.questions.find((question) => question.id === rule.question_id);
+                      const options = source?.options ?? [];
+                      return options.length ? (
+                        <select value={rule.value} onChange={(event) => void updateLogic({ ...rule, value: event.target.value })} className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm">
+                          {options.map((option) => <option key={option}>{option}</option>)}
+                        </select>
+                      ) : (
+                        <input
+                          value={rule.value}
+                          onChange={(event) => replaceQuestion(selected.id, { settings: { ...(selected.settings ?? {}), logic: { ...rule, value: event.target.value } } })}
+                          onBlur={() => void saveQuestion({ settings: selected.settings })}
+                          placeholder="Expected answer"
+                          className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm"
+                        />
+                      );
+                    })()}
+                  </>
+                )}
+              </div>
+            ) : (
+              <p className="mt-3 text-xs text-black/50">Add a question before this one to create a rule.</p>
+            )}
+          </div>
+        </section>
+      )}
+
+      <section className="mx-auto mb-6 grid max-w-7xl gap-4 px-5 md:grid-cols-2 lg:grid-cols-4">
+        {[
+          ["Logic jumps", "Basic conditional visibility is supported. Advanced branching rules are coming soon."],
+          ["Integrations & webhooks", "Connectors, webhook delivery, and automation setup are coming soon."],
+          ["Team collaboration", "Shared workspaces, roles, comments, and invite links are coming soon."],
+          ["Payments & uploads", "Payment processing and permanent file storage are coming soon."],
+        ].map(([title, copy]) => (
+          <div key={title} className="rounded-2xl border border-dashed border-black/15 bg-white p-4">
+            <p style={{ fontFamily: "var(--font-reg)" }} className="text-sm font-bold">{title}</p>
+            <span className="mt-2 inline-flex rounded-full bg-[#f3e6ff] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#8b5cf6]">Coming soon</span>
+            <p className="mt-3 text-xs leading-5 text-black/50">{copy}</p>
+          </div>
+        ))}
+      </section>
+    </main>
+  );
 }
