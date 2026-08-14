@@ -36,7 +36,7 @@ export function ThemeToggle() {
 
       {/* Sliding knob */}
       <span
-        className={`relative z-10 grid h-7 w-7 place-items-center rounded-full bg-white text-xs shadow-md transition-transform duration-300 ease-out ${
+        className={`relative z-10 grid h-7 w-7 place-items-center rounded-full bg-app-surface text-xs shadow-md transition-transform duration-300 ease-out ${
           dark ? "translate-x-8" : "translate-x-1"
         }`}
       >

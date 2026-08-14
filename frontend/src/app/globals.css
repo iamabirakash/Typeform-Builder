@@ -2,15 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; }
-:root.dark { color-scheme: dark; }
+/* Color palette — light mode */
+:root {
+  color-scheme: light;
+  --color-bg: #f7f6fa;
+  --color-surface: #ffffff;
+  --color-border: rgba(23, 23, 25, 0.08);
+  --color-text: #171719;
+  --color-text-muted: rgba(23, 23, 25, 0.5);
+  --color-accent: #8b5cf6;
+  --color-accent-hover: #7c3aed;
+}
+
+/* Dark mode — same semantic tokens, swapped values */
+.dark {
+  --color-bg: #0f172a;
+  --color-surface: #1c1620;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-text: #f8fafc;
+  --color-text-muted: rgba(248, 250, 252, 0.5);
+  --color-accent: #a78bfa;
+  --color-accent-hover: #8b5cf6;
+}
+
 * { box-sizing: border-box; }
-body { margin: 0; background: #ffffff; color: #0f172a; font-family: Arial, Helvetica, sans-serif; }
-:root.dark body { background: #0f172a; color: #e2e8f0; }
-:root.dark .bg-white { background-color: #182235 !important; }
-:root.dark .bg-slate-50, :root.dark .bg-\[\#f7f7fb\] { background-color: #0f172a !important; }
-:root.dark .text-slate-950, :root.dark .text-black { color: #f8fafc !important; }
-:root.dark .text-slate-600, :root.dark .text-slate-500, :root.dark .text-slate-400 { color: #94a3b8 !important; }
-:root.dark .border-slate-200, :root.dark .border-slate-300 { border-color: #334155 !important; }
-:root.dark input, :root.dark textarea, :root.dark select { background-color: #182235; color: #f8fafc; border-color: #334155; }
-:root.dark .bg-slate-100 { background-color: #243044 !important; }
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'reg', Arial, Helvetica, sans-serif;
+}
+
+/* Form elements inherit the theme */
+input, textarea, select {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+/* Selection follows theme text */
+::selection {
+  color: var(--color-surface);
+  background-color: var(--color-accent);
+}

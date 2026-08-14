@@ -45,12 +45,12 @@ function DraggableQuestion({ question, active }: { question: Question; active: b
     <div
       ref={(node) => { setDragRef(node); setDropRef(node); }}
       style={style}
-      className={`mb-2 flex items-center gap-3 rounded-xl border p-3 transition ${active ? "border-[#8b5cf6] bg-[#f3e6ff]" : isOver ? "border-[#8b5cf6] bg-white" : "border-black/10 bg-white"}`}
+      className={`mb-2 flex items-center gap-3 rounded-xl border p-3 transition ${active ? "border-app-accent bg-[#f3e6ff] dark:bg-[#3b2a52]" : isOver ? "border-app-accent bg-app-surface" : "border-app-border bg-app-surface"}`}
     >
-      <button {...listeners} {...attributes} aria-label={`Drag ${question.title}`} className="cursor-grab touch-none px-1 text-black/30">::</button>
+      <button {...listeners} {...attributes} aria-label={`Drag ${question.title}`} className="cursor-grab touch-none px-1 text-black/30 dark:text-white/30">::</button>
       <div className="min-w-0 flex-1">
         <p style={{ fontFamily: "var(--font-reg)" }} className="truncate text-sm font-medium">{question.title}</p>
-        <p style={{ fontFamily: "var(--font-reg)" }} className="mt-1 text-xs capitalize text-black/40">{question.type.replaceAll("_", " ")}</p>
+        <p style={{ fontFamily: "var(--font-reg)" }} className="mt-1 text-xs capitalize text-app-text-muted">{question.type.replaceAll("_", " ")}</p>
       </div>
     </div>
   );
@@ -111,41 +111,41 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
   async function publish() { setSaving(true); try { const updated = await api<Form>(`/api/forms/${formId}/${form?.status === "published" ? "unpublish" : "publish"}`, { method: "POST" }); setForm(updated); setNotice(updated.status === "published" ? "Published" : "Unpublished"); } catch (err) { setError(err instanceof Error ? err.message : "Could not update publish status"); } finally { setSaving(false); } }
   async function copyLink() { if (!form?.public_slug) return; await navigator.clipboard.writeText(`${window.location.origin}/f/${form.public_slug}`); setNotice("Link copied"); window.setTimeout(() => setNotice(""), 1500); }
 
-  if (loading) return <div style={{ fontFamily: "var(--font-reg)" }} className={`grid min-h-screen place-items-center bg-[#f7f6fa] text-black/50 ${regFont.variable}`}>Loading builder...</div>;
-  if (!form) return <div style={{ fontFamily: "var(--font-reg)" }} className={`grid min-h-screen place-items-center bg-[#f7f6fa] text-red-600 ${regFont.variable}`}>{error || "Form not found"}</div>;
+  if (loading) return <div style={{ fontFamily: "var(--font-reg)" }} className={`grid min-h-screen place-items-center bg-app-bg text-app-text-muted ${regFont.variable}`}>Loading builder...</div>;
+  if (!form) return <div style={{ fontFamily: "var(--font-reg)" }} className={`grid min-h-screen place-items-center bg-app-bg text-red-600 ${regFont.variable}`}>{error || "Form not found"}</div>;
 
   return (
-    <main style={{ fontFamily: "var(--font-reg)" }} className={`min-h-screen bg-[#f7f6fa] text-[#171719] ${typeformFont.variable} ${regFont.variable}`}>
-      <header className="flex h-16 items-center justify-between border-b border-black/10 bg-white px-5">
+    <main style={{ fontFamily: "var(--font-reg)" }} className={`min-h-screen bg-app-bg text-app-text ${typeformFont.variable} ${regFont.variable}`}>
+      <header className="flex h-16 items-center justify-between border-b border-app-border bg-app-surface px-5">
         <div className="flex items-center gap-5">
-          <Link href="/forms" style={{ fontFamily: "var(--font-reg)" }} className="grid h-9 w-9 place-items-center rounded-xl bg-[#1c1620] font-bold text-white">t.</Link>
-          <div className="h-6 w-px bg-black/10" />
+          <Link href="/forms" style={{ fontFamily: "var(--font-reg)" }} className="grid h-9 w-9 place-items-center rounded-xl bg-[#1c1620] font-bold text-white dark:bg-white dark:text-[#1c1620]">t.</Link>
+          <div className="h-6 w-px bg-black/10 dark:bg-white/10" />
           <input
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             onBlur={() => void updateForm({ title: form.title })}
             style={{ fontFamily: "var(--font-reg)" }}
-            className="w-64 rounded-lg border border-transparent bg-white px-2 py-1 text-sm font-bold text-[#171719] outline-none hover:border-black/10 focus:border-[#8b5cf6]"
+            className="w-64 rounded-lg border border-transparent bg-app-surface px-2 py-1 text-sm font-bold text-app-text outline-none hover:border-app-border focus:border-app-accent"
           />
         </div>
         <div className="flex items-center gap-3">
-          <Link href={`/forms/${formId}/results`} className="rounded-full px-3 py-2 text-sm font-medium text-black/60 hover:bg-black/5">Results</Link>
-          <Link href={`/f/preview?formId=${formId}`} target="_blank" className="rounded-full border border-black/10 px-4 py-2 text-sm font-medium hover:border-[#8b5cf6] hover:text-[#8b5cf6]">Preview</Link>
-          <button onClick={() => void publish()} disabled={saving || form.questions.length === 0} className="rounded-full bg-[#1c1620] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8b5cf6] disabled:opacity-50">
+          <Link href={`/forms/${formId}/results`} className="rounded-full px-3 py-2 text-sm font-medium text-app-text-muted hover:bg-black/5 dark:hover:bg-white/5">Results</Link>
+          <Link href={`/f/preview?formId=${formId}`} target="_blank" className="rounded-full border border-app-border px-4 py-2 text-sm font-medium hover:border-app-accent hover:text-app-accent">Preview</Link>
+          <button onClick={() => void publish()} disabled={saving || form.questions.length === 0} className="rounded-full bg-[#1c1620] px-4 py-2 text-sm font-semibold text-white transition hover:bg-app-accent disabled:opacity-50 dark:bg-white dark:text-[#1c1620]">
             {form.status === "published" ? "Unpublish" : "Publish"}
           </button>
         </div>
       </header>
 
-      {notice && <div className="fixed right-6 top-20 z-20 rounded-xl bg-[#1c1620] px-4 py-3 text-sm font-medium text-white shadow-lg">{notice}</div>}
-      {error && <div className="mx-auto mt-4 max-w-7xl rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {notice && <div className="fixed right-6 top-20 z-20 rounded-xl bg-[#1c1620] px-4 py-3 text-sm font-medium text-white shadow-lg dark:bg-white dark:text-[#1c1620]">{notice}</div>}
+      {error && <div className="mx-auto mt-4 max-w-7xl rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400">{error}</div>}
 
       <div className="mx-auto grid max-w-7xl grid-cols-[280px_minmax(0,1fr)_360px] gap-5 px-5 py-5">
         {/* Question list */}
-        <aside className="rounded-2xl border border-black/10 bg-white p-4">
+        <aside className="rounded-2xl border border-app-border bg-app-surface p-4">
           <div className="mb-4 flex items-center justify-between">
-            <h2 style={{ fontFamily: "var(--font-reg)" }} className="text-sm font-bold">Questions</h2>
-            <span className="text-xs text-black/40">{form.questions.length}</span>
+            <h2 style={{ fontFamily: "var(--font-reg)" }} className="text-sm font-bold text-app-text">Questions</h2>
+            <span className="text-xs text-app-text-muted">{form.questions.length}</span>
           </div>
           <DndContext sensors={sensors} onDragStart={(e) => setActiveId(Number(e.active.id))} onDragCancel={() => setActiveId(null)} onDragEnd={(e) => void reorder(e)}>
             {form.questions.map((question) => (
@@ -153,16 +153,16 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
                 <DraggableQuestion question={question} active={selectedId === question.id} />
               </div>
             ))}
-            <DragOverlay>{activeId ? <div className="rounded-xl bg-white p-3 text-sm shadow-xl">{form.questions.find((q) => q.id === activeId)?.title}</div> : null}</DragOverlay>
+            <DragOverlay>{activeId ? <div className="rounded-xl bg-app-surface p-3 text-sm shadow-xl text-app-text">{form.questions.find((q) => q.id === activeId)?.title}</div> : null}</DragOverlay>
           </DndContext>
           <div className="relative mt-4">
-            <button onClick={() => setPickerOpen(!pickerOpen)} className="w-full rounded-xl border border-dashed border-[#8b5cf6] px-4 py-3 text-sm font-semibold text-[#8b5cf6] hover:bg-[#f3e6ff]">+ Add question</button>
+            <button onClick={() => setPickerOpen(!pickerOpen)} className="w-full rounded-xl border border-dashed border-app-accent px-4 py-3 text-sm font-semibold text-app-accent hover:bg-[#f3e6ff] dark:hover:bg-[#3b2a52]">+ Add question</button>
             {pickerOpen && (
-              <div className="absolute left-0 right-0 top-14 z-10 grid max-h-[min(24rem,calc(100vh-10rem))] grid-cols-2 gap-1 overflow-y-auto rounded-2xl border border-black/10 bg-white p-2 shadow-xl">
+              <div className="absolute left-0 right-0 top-14 z-10 grid max-h-[min(24rem,calc(100vh-10rem))] grid-cols-2 gap-1 overflow-y-auto rounded-2xl border border-app-border bg-app-surface p-2 shadow-xl">
                 {questionTypes.map((item) => (
-                  <button key={item.type} onClick={() => void addQuestion(item.type)} className="flex min-w-0 items-center gap-2 rounded-xl p-2 text-left text-xs hover:bg-[#f3e6ff]">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#f7f6fa] font-semibold text-[#8b5cf6]">{item.icon}</span>
-                    <span className="truncate">{item.label}</span>
+                  <button key={item.type} onClick={() => void addQuestion(item.type)} className="flex min-w-0 items-center gap-2 rounded-xl p-2 text-left text-xs hover:bg-[#f3e6ff] dark:hover:bg-[#3b2a52]">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-app-bg font-semibold text-app-accent">{item.icon}</span>
+                    <span className="truncate text-app-text">{item.label}</span>
                   </button>
                 ))}
               </div>
@@ -171,47 +171,47 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
         </aside>
 
         {/* Live preview */}
-        <section className="min-h-[calc(100vh-7rem)] rounded-2xl border border-black/10 bg-white p-10">
+        <section className="min-h-[calc(100vh-7rem)] rounded-2xl border border-app-border bg-app-surface p-10">
           <div className="mx-auto max-w-2xl">
-            <p className="mb-10 text-xs font-semibold uppercase tracking-[0.18em] text-[#8b5cf6]">Question {selected ? selected.order_index + 1 : 0}</p>
+            <p className="mb-10 text-xs font-semibold uppercase tracking-[0.18em] text-app-accent">Question {selected ? selected.order_index + 1 : 0}</p>
             {selected ? (
               <>
-                <h1 style={{ fontFamily: "var(--font-reg)" }} className="text-3xl font-bold tracking-tight">{selected.title}</h1>
-                {selected.description && <p className="mt-3 text-black/50">{selected.description}</p>}
+                <h1 style={{ fontFamily: "var(--font-reg)" }} className="text-3xl font-bold tracking-tight text-app-text">{selected.title}</h1>
+                {selected.description && <p className="mt-3 text-app-text-muted">{selected.description}</p>}
                 {selected.settings?.section_title && (
-                  <p className="mt-6 rounded-xl bg-[#f3e6ff] px-4 py-3 text-sm font-semibold text-[#8b5cf6]">Section: {String(selected.settings.section_title)}</p>
+                  <p className="mt-6 rounded-xl bg-[#f3e6ff] px-4 py-3 text-sm font-semibold text-app-accent dark:bg-[#3b2a52]">Section: {String(selected.settings.section_title)}</p>
                 )}
-                <div className="mt-12 rounded-2xl border border-black/10 bg-[#f7f6fa] p-5 text-black/40">
+                <div className="mt-12 rounded-2xl border border-app-border bg-app-bg p-5 text-app-text-muted">
                   {selected.settings?.input_type === "file_upload" ? (
-                    <div className="rounded-xl border-2 border-dashed border-black/15 p-10 text-center">Upload a file</div>
+                    <div className="rounded-xl border-2 border-dashed border-black/15 dark:border-white/15 p-10 text-center">Upload a file</div>
                   ) : selected.type === "multiple_choice" || selected.type === "dropdown" ? (
                     <div className="space-y-3">
                       {(selected.options ?? []).map((option, index) => (
-                        <div key={`${option}-${index}`} className="rounded-xl border border-black/10 bg-white px-4 py-3">{option}</div>
+                        <div key={`${option}-${index}`} className="rounded-xl border border-app-border bg-app-surface px-4 py-3">{option}</div>
                       ))}
                     </div>
                   ) : selected.type === "rating" ? (
-                    <div className="flex gap-3 text-2xl text-[#8b5cf6]">
+                    <div className="flex gap-3 text-2xl text-app-accent">
                       {Array.from({ length: Number(selected.settings?.max ?? 5) }, (_, index) => <span key={index}>*</span>)}
                     </div>
                   ) : selected.type === "yes_no" ? (
                     <div className="flex gap-3">
-                      <span className="rounded-xl border border-black/10 bg-white px-6 py-3">Yes</span>
-                      <span className="rounded-xl border border-black/10 bg-white px-6 py-3">No</span>
+                      <span className="rounded-xl border border-app-border bg-app-surface px-6 py-3">Yes</span>
+                      <span className="rounded-xl border border-app-border bg-app-surface px-6 py-3">No</span>
                     </div>
                   ) : (
-                    <div className="border-b border-black/15 pb-3">{String(selected.settings?.placeholder ?? "Type your answer here...")}</div>
+                    <div className="border-b border-black/15 dark:border-white/15 pb-3">{String(selected.settings?.placeholder ?? "Type your answer here...")}</div>
                   )}
                 </div>
               </>
             ) : (
-              <div className="py-24 text-center text-black/30">Select a question to edit</div>
+              <div className="py-24 text-center text-app-text-muted">Select a question to edit</div>
             )}
           </div>
         </section>
 
         {/* Edit panel */}
-        <aside className="rounded-2xl border border-black/10 bg-white p-5">
+        <aside className="rounded-2xl border border-app-border bg-white p-5">
           <h2 style={{ fontFamily: "var(--font-reg)" }} className="text-sm font-bold">Edit question</h2>
           {selected ? (
             <div className="mt-6 space-y-5">
@@ -221,17 +221,17 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
                   value={selected.title}
                   onChange={(e) => replaceQuestion(selected.id, { title: e.target.value })}
                   onBlur={() => void saveQuestion({ title: selected.title })}
-                  className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-[#171719] outline-none focus:border-[#8b5cf6]"
+                  className="mt-2 w-full rounded-xl border border-app-border bg-white px-3 py-2.5 text-app-text outline-none focus:border-app-accent"
                 />
               </label>
               <label className="block text-sm font-medium">
                 Help text
-                <span className="mt-2 block text-xs font-normal text-black/40">Optional description</span>
+                <span className="mt-2 block text-xs font-normal text-app-text-muted">Optional description</span>
                 <textarea
                   value={selected.description ?? ""}
                   onChange={(e) => replaceQuestion(selected.id, { description: e.target.value })}
                   rows={3}
-                  className="mt-2 w-full resize-none rounded-xl border border-black/10 bg-white px-3 py-2.5 text-[#171719] outline-none focus:border-[#8b5cf6]"
+                  className="mt-2 w-full resize-none rounded-xl border border-app-border bg-white px-3 py-2.5 text-app-text outline-none focus:border-app-accent"
                 />
               </label>
               <label className="block text-sm font-medium">
@@ -241,20 +241,20 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
                   onChange={(e) => replaceQuestion(selected.id, { settings: { ...(selected.settings ?? {}), placeholder: e.target.value } })}
                   onBlur={() => void saveQuestion({ settings: selected.settings })}
                   placeholder="Type your answer here..."
-                  className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#171719] outline-none focus:border-[#8b5cf6]"
+                  className="mt-2 w-full rounded-xl border border-app-border bg-white px-3 py-2 text-sm text-app-text outline-none focus:border-app-accent"
                 />
               </label>
-              <label className="flex items-center justify-between rounded-xl bg-[#f7f6fa] p-3 text-sm font-medium">
+              <label className="flex items-center justify-between rounded-xl bg-app-bg p-3 text-sm font-medium">
                 Required
-                <input type="checkbox" checked={selected.required} onChange={(e) => { replaceQuestion(selected.id, { required: e.target.checked }); void saveQuestion({ required: e.target.checked }); }} className="h-4 w-4 accent-[#8b5cf6]" />
+                <input type="checkbox" checked={selected.required} onChange={(e) => { replaceQuestion(selected.id, { required: e.target.checked }); void saveQuestion({ required: e.target.checked }); }} className="h-4 w-4 accent-app-accent" />
               </label>
-              <label className="flex items-center justify-between rounded-xl bg-[#f7f6fa] p-3 text-sm font-medium">
+              <label className="flex items-center justify-between rounded-xl bg-app-bg p-3 text-sm font-medium">
                 Page break before
                 <input
                   type="checkbox"
                   checked={Boolean(selected.settings?.page_break_before)}
                   onChange={(e) => { const settings = { ...(selected.settings ?? {}), page_break_before: e.target.checked }; replaceQuestion(selected.id, { settings }); void saveQuestion({ settings }); }}
-                  className="h-4 w-4 accent-[#8b5cf6]"
+                  className="h-4 w-4 accent-app-accent"
                 />
               </label>
 
@@ -268,11 +268,11 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
                           value={option}
                           onChange={(e) => { const options = [...(selected.options ?? [])]; options[index] = e.target.value; replaceQuestion(selected.id, { options }); }}
                           onBlur={() => void saveQuestion({ options: selected.options })}
-                          className="min-w-0 flex-1 rounded-lg border border-black/10 bg-white px-3 py-2 text-sm text-[#171719]"
+                          className="min-w-0 flex-1 rounded-lg border border-app-border bg-white px-3 py-2 text-sm text-app-text"
                         />
                         <button
                           onClick={() => { const options = (selected.options ?? []).filter((_, optionIndex) => optionIndex !== index); replaceQuestion(selected.id, { options }); void saveQuestion({ options }); }}
-                          className="px-2 text-black/30 hover:text-red-600"
+                          className="px-2 text-black/30 dark:text-white/30 hover:text-red-600"
                         >
                           x
                         </button>
@@ -281,7 +281,7 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
                   </div>
                   <button
                     onClick={() => { const options = [...(selected.options ?? []), `Option ${(selected.options?.length ?? 0) + 1}`]; replaceQuestion(selected.id, { options }); void saveQuestion({ options }); }}
-                    className="mt-2 text-sm font-semibold text-[#8b5cf6]"
+                    className="mt-2 text-sm font-semibold text-app-accent"
                   >
                     + Add option
                   </button>
@@ -297,7 +297,7 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
                       value={Number(selected.settings?.min ?? 0)}
                       onChange={(e) => { const settings = { ...(selected.settings ?? {}), min: Number(e.target.value) }; replaceQuestion(selected.id, { settings }); }}
                       onBlur={() => void saveQuestion({ settings: selected.settings })}
-                      className="mt-2 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-[#171719]"
+                      className="mt-2 w-full rounded-lg border border-app-border bg-white px-3 py-2 text-app-text"
                     />
                   </label>
                   <label className="text-sm font-medium">
@@ -307,44 +307,44 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
                       value={Number(selected.settings?.max ?? 5)}
                       onChange={(e) => { const settings = { ...(selected.settings ?? {}), max: Number(e.target.value) }; replaceQuestion(selected.id, { settings }); }}
                       onBlur={() => void saveQuestion({ settings: selected.settings })}
-                      className="mt-2 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-[#171719]"
+                      className="mt-2 w-full rounded-lg border border-app-border bg-white px-3 py-2 text-app-text"
                     />
                   </label>
                 </div>
               )}
 
               <div className="flex gap-2">
-                <button onClick={() => void duplicateSelected()} className="flex-1 rounded-xl border border-[#8b5cf6] px-3 py-2.5 text-sm font-semibold text-[#8b5cf6] hover:bg-[#f3e6ff]">Duplicate</button>
+                <button onClick={() => void duplicateSelected()} className="flex-1 rounded-xl border border-app-accent px-3 py-2.5 text-sm font-semibold text-app-accent hover:bg-[#f3e6ff]">Duplicate</button>
                 <button onClick={() => setDeleteQuestion(true)} className="flex-1 rounded-xl border border-red-200 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">Delete</button>
               </div>
             </div>
           ) : (
-            <p className="mt-5 text-sm text-black/40">Choose a question from the left to edit it.</p>
+            <p className="mt-5 text-sm text-app-text-muted">Choose a question from the left to edit it.</p>
           )}
 
-          <div className="mt-10 border-t border-black/10 pt-6">
+          <div className="mt-10 border-t border-app-border pt-6">
             <h2 style={{ fontFamily: "var(--font-reg)" }} className="text-sm font-bold">Form settings</h2>
             <label className="mt-4 block text-sm font-medium">
               Accent color
-              <input type="color" value={form.theme?.color ?? "#8b5cf6"} onChange={(e) => void updateForm({ theme: { ...(form.theme ?? {}), color: e.target.value } })} className="mt-2 h-10 w-full cursor-pointer rounded-lg border border-black/10 bg-white p-1" />
+              <input type="color" value={form.theme?.color ?? "#8b5cf6"} onChange={(e) => void updateForm({ theme: { ...(form.theme ?? {}), color: e.target.value } })} className="mt-2 h-10 w-full cursor-pointer rounded-lg border border-app-border bg-white p-1" />
             </label>
             <label className="mt-4 block text-sm font-medium">
               Background color
-              <input type="color" value={form.theme?.background ?? "#f7f6fa"} onChange={(e) => void updateForm({ theme: { ...(form.theme ?? {}), background: e.target.value } })} className="mt-2 h-10 w-full cursor-pointer rounded-lg border border-black/10 bg-white p-1" />
+              <input type="color" value={form.theme?.background ?? "#f7f6fa"} onChange={(e) => void updateForm({ theme: { ...(form.theme ?? {}), background: e.target.value } })} className="mt-2 h-10 w-full cursor-pointer rounded-lg border border-app-border bg-white p-1" />
             </label>
             <label className="mt-4 block text-sm font-medium">
               Welcome screen
-              <textarea value={form.welcome_message} onChange={(e) => setForm({ ...form, welcome_message: e.target.value })} onBlur={() => void updateForm({ welcome_message: form.welcome_message })} rows={2} className="mt-2 w-full resize-none rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#171719]" />
+              <textarea value={form.welcome_message} onChange={(e) => setForm({ ...form, welcome_message: e.target.value })} onBlur={() => void updateForm({ welcome_message: form.welcome_message })} rows={2} className="mt-2 w-full resize-none rounded-xl border border-app-border bg-white px-3 py-2 text-sm text-app-text" />
             </label>
             <label className="mt-4 block text-sm font-medium">
               Thank-you message
-              <textarea value={form.thank_you_message} onChange={(e) => setForm({ ...form, thank_you_message: e.target.value })} onBlur={() => void updateForm({ thank_you_message: form.thank_you_message })} rows={2} className="mt-2 w-full resize-none rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#171719]" />
+              <textarea value={form.thank_you_message} onChange={(e) => setForm({ ...form, thank_you_message: e.target.value })} onBlur={() => void updateForm({ thank_you_message: form.thank_you_message })} rows={2} className="mt-2 w-full resize-none rounded-xl border border-app-border bg-white px-3 py-2 text-sm text-app-text" />
             </label>
             {form.status === "published" && form.public_slug && (
               <div className="mt-5 rounded-xl bg-[#f3e6ff] p-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#8b5cf6]">Share link</p>
-                <p className="mt-2 break-all text-xs text-black/60">{window.location.origin}/f/{form.public_slug}</p>
-                <button onClick={() => void copyLink()} className="mt-3 text-sm font-semibold text-[#8b5cf6]">Copy link</button>
+                <p className="text-xs font-semibold uppercase tracking-wider text-app-accent">Share link</p>
+                <p className="mt-2 break-all text-xs text-app-text-muted">{window.location.origin}/f/{form.public_slug}</p>
+                <button onClick={() => void copyLink()} className="mt-3 text-sm font-semibold text-app-accent">Copy link</button>
               </div>
             )}
           </div>
@@ -355,9 +355,9 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
         <div role="dialog" aria-modal="true" className="fixed inset-0 z-40 flex items-center justify-center bg-[#1c1620]/50 px-5" onClick={() => setDeleteQuestion(false)}>
           <div className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl" onClick={(event) => event.stopPropagation()}>
             <h2 style={{ fontFamily: "var(--font-reg)" }} className="text-xl font-bold">Delete this question?</h2>
-            <p className="mt-2 text-sm leading-6 text-black/50">The question and its saved answers will be removed.</p>
+            <p className="mt-2 text-sm leading-6 text-app-text-muted">The question and its saved answers will be removed.</p>
             <div className="mt-7 flex justify-end gap-3">
-              <button onClick={() => setDeleteQuestion(false)} className="rounded-xl border border-black/10 px-4 py-2.5 text-sm font-semibold">Cancel</button>
+              <button onClick={() => setDeleteQuestion(false)} className="rounded-xl border border-app-border px-4 py-2.5 text-sm font-semibold">Cancel</button>
               <button onClick={() => void deleteSelected()} className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Delete question</button>
             </div>
           </div>
@@ -366,15 +366,15 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
 
       {selected && (
         <section className="mx-auto mb-6 max-w-7xl px-5">
-          <div className="rounded-2xl border border-black/10 bg-white p-5">
+          <div className="rounded-2xl border border-app-border bg-white p-5">
             <h2 style={{ fontFamily: "var(--font-reg)" }} className="text-sm font-bold">Logic for: {selected.title}</h2>
-            <p className="mt-1 text-xs text-black/50">Show this question only when a previous answer matches a rule.</p>
+            <p className="mt-1 text-xs text-app-text-muted">Show this question only when a previous answer matches a rule.</p>
             {form.questions.some((question) => question.order_index < selected.order_index) ? (
               <div className="mt-4 grid gap-3 md:grid-cols-3">
                 <select
                   value={String((selected.settings?.logic as LogicRule | undefined)?.question_id ?? "")}
                   onChange={(event) => { const source = form.questions.find((question) => question.id === Number(event.target.value)); const current = selected.settings?.logic as LogicRule | undefined; void updateLogic(source ? { question_id: source.id, operator: current?.operator ?? "is", value: current?.value ?? source.options?.[0] ?? "" } : null); }}
-                  className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm"
+                  className="rounded-lg border border-app-border bg-white px-3 py-2 text-sm"
                 >
                   <option value="">Always show</option>
                   {form.questions.filter((question) => question.order_index < selected.order_index).map((question) => (
@@ -386,7 +386,7 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
                     <select
                       value={(selected.settings?.logic as LogicRule).operator}
                       onChange={(event) => { const current = selected.settings?.logic as LogicRule; void updateLogic({ ...current, operator: event.target.value as LogicRule["operator"] }); }}
-                      className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm"
+                      className="rounded-lg border border-app-border bg-white px-3 py-2 text-sm"
                     >
                       <option value="is">is</option>
                       <option value="is_not">is not</option>
@@ -396,7 +396,7 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
                       const source = form.questions.find((question) => question.id === rule.question_id);
                       const options = source?.options ?? [];
                       return options.length ? (
-                        <select value={rule.value} onChange={(event) => void updateLogic({ ...rule, value: event.target.value })} className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm">
+                        <select value={rule.value} onChange={(event) => void updateLogic({ ...rule, value: event.target.value })} className="rounded-lg border border-app-border bg-white px-3 py-2 text-sm">
                           {options.map((option) => <option key={option}>{option}</option>)}
                         </select>
                       ) : (
@@ -405,7 +405,7 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
                           onChange={(event) => replaceQuestion(selected.id, { settings: { ...(selected.settings ?? {}), logic: { ...rule, value: event.target.value } } })}
                           onBlur={() => void saveQuestion({ settings: selected.settings })}
                           placeholder="Expected answer"
-                          className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm"
+                          className="rounded-lg border border-app-border bg-white px-3 py-2 text-sm"
                         />
                       );
                     })()}
@@ -413,7 +413,7 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
                 )}
               </div>
             ) : (
-              <p className="mt-3 text-xs text-black/50">Add a question before this one to create a rule.</p>
+              <p className="mt-3 text-xs text-app-text-muted">Add a question before this one to create a rule.</p>
             )}
           </div>
         </section>
@@ -426,10 +426,10 @@ export default function BuilderPage({ params }: { params: { id: string } }) {
           ["Team collaboration", "Shared workspaces, roles, comments, and invite links are coming soon."],
           ["Payments & uploads", "Payment processing and permanent file storage are coming soon."],
         ].map(([title, copy]) => (
-          <div key={title} className="rounded-2xl border border-dashed border-black/15 bg-white p-4">
+          <div key={title} className="rounded-2xl border border-dashed border-black/15 dark:border-white/15 bg-white p-4">
             <p style={{ fontFamily: "var(--font-reg)" }} className="text-sm font-bold">{title}</p>
-            <span className="mt-2 inline-flex rounded-full bg-[#f3e6ff] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#8b5cf6]">Coming soon</span>
-            <p className="mt-3 text-xs leading-5 text-black/50">{copy}</p>
+            <span className="mt-2 inline-flex rounded-full bg-[#f3e6ff] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-app-accent">Coming soon</span>
+            <p className="mt-3 text-xs leading-5 text-app-text-muted">{copy}</p>
           </div>
         ))}
       </section>

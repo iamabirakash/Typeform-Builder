@@ -24,9 +24,9 @@ export function ComingSoonPage({ title, description }: { title: string; descript
   return (
     <main
       style={{ fontFamily: "var(--font-reg)" }}
-      className={`min-h-screen bg-[#f7f6fa] text-[#171719] dark:bg-[#1c1620] dark:text-white ${typeformFont.variable} ${regFont.variable}`}
+      className={`min-h-screen bg-app-bg text-app-text ${typeformFont.variable} ${regFont.variable}`}
     >
-      <header className="border-b border-black/5 dark:border-white/10">
+      <header className="border-b border-app-border">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
           <Link href="/forms" style={{ fontFamily: "var(--font-typeform)" }} className="flex items-center gap-2.5 text-sm font-bold">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#1c1620] text-white dark:bg-white dark:text-[#1c1620]">t.</span>
@@ -34,7 +34,7 @@ export function ComingSoonPage({ title, description }: { title: string; descript
           </Link>
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <Link href="/forms" className="text-sm font-semibold text-black/50 transition hover:text-[#8b5cf6] dark:text-white/50 dark:hover:text-white">
+            <Link href="/forms" className="text-sm font-semibold text-app-text-muted transition hover:text-app-accent">
               Back to forms
             </Link>
           </div>
@@ -46,8 +46,8 @@ export function ComingSoonPage({ title, description }: { title: string; descript
         <div className="pointer-events-none absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#8b5cf6]/10 blur-[100px]" />
 
         <div className="relative">
-          <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8b5cf6]">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#8b5cf6]" />
+          <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-app-accent">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-app-accent" />
             On the roadmap
           </span>
 
@@ -58,13 +58,13 @@ export function ComingSoonPage({ title, description }: { title: string; descript
             {title}
           </h1>
 
-          <p className="mx-auto mt-5 max-w-md text-base leading-7 text-black/50 dark:text-white/50">
+          <p className="mx-auto mt-5 max-w-md text-base leading-7 text-app-text-muted">
             {description}
           </p>
 
           <Link
             href="/forms"
-            className="mt-10 inline-flex rounded-full border border-black/10 px-6 py-3 text-sm font-semibold transition hover:border-[#8b5cf6] hover:text-[#8b5cf6] dark:border-white/15 dark:hover:border-white dark:hover:text-white"
+            className="mt-10 inline-flex rounded-full border border-app-border px-6 py-3 text-sm font-semibold transition hover:border-app-accent hover:text-app-accent"
           >
             Return to your forms
           </Link>
